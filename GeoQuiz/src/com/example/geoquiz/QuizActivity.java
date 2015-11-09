@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class QuizActivity extends Activity
@@ -16,18 +17,33 @@ public class QuizActivity extends Activity
 
     private Button myFalseButton;
 
+    private Button myNextButton;
+
+    private TextView myQuestionTextView;
+
+    private TrueFalse[] myQuestionBank = new TrueFalse[] { new TrueFalse( R.string.question_oceans, true ),
+            new TrueFalse( R.string.question_mideast, false ), new TrueFalse( R.string.question_africa, false ),
+            new TrueFalse( R.string.question_americas, true ), new TrueFalse( R.string.question_asia, true ) };
+
+    private int myCurrentIndex = 0;
+
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_quiz );
+
+        myQuestionTextView = ( TextView ) findViewById( R.id.question_text_view );
+        int question = myQuestionBank[myCurrentIndex].getQuestion();
+        myQuestionTextView.setText( question );
+
         myTrueButton = ( Button ) findViewById( R.id.true_button );
         myTrueButton.setOnClickListener( new OnClickListener()
         {
             @Override
             public void onClick( View v )
             {
-                Toast.makeText( QuizActivity.this, R.string.incorrect_toast, Toast.LENGTH_SHORT );
+                checkAnswer( true );
             }
         } );
         myFalseButton = ( Button ) findViewById( R.id.false_button );
@@ -36,9 +52,40 @@ public class QuizActivity extends Activity
             @Override
             public void onClick( View v )
             {
-                Toast.makeText( QuizActivity.this, R.string.correct_toast, Toast.LENGTH_SHORT );
+                checkAnswer( false );
             }
         } );
+        myNextButton = ( Button ) findViewById( R.id.next_button );
+        myNextButton.setOnClickListener( new OnClickListener()
+        {
+            @Override
+            public void onClick( View v )
+            {
+                myCurrentIndex = ( myCurrentIndex + 1 ) % myQuestionBank.length;
+                updateQuestion();
+            }
+        } );
+    }
+
+    private void checkAnswer( Boolean answer )
+    {
+        boolean correctAnswer = myQuestionBank[myCurrentIndex].isTrueQuestion();
+        int resourceId;
+        if( answer == correctAnswer )
+        {
+            resourceId = R.string.correct_toast;
+        }
+        else
+        {
+            resourceId = R.string.incorrect_toast;
+        }
+        Toast.makeText( this, resourceId, Toast.LENGTH_SHORT ).show();
+    }
+
+    private void updateQuestion()
+    {
+        int question = myQuestionBank[myCurrentIndex].getQuestion();
+        myQuestionTextView.setText( question );
     }
 
     @Override

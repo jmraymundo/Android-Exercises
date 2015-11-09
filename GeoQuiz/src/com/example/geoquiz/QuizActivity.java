@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,7 +18,9 @@ public class QuizActivity extends Activity
 
     private Button myFalseButton;
 
-    private Button myNextButton;
+    private ImageButton myNextButton;
+
+    private ImageButton myPreviousButton;
 
     private TextView myQuestionTextView;
 
@@ -55,7 +58,24 @@ public class QuizActivity extends Activity
                 checkAnswer( false );
             }
         } );
-        myNextButton = ( Button ) findViewById( R.id.next_button );
+        myPreviousButton = ( ImageButton ) findViewById( R.id.previous_button );
+        myPreviousButton.setOnClickListener( new OnClickListener()
+        {
+            @Override
+            public void onClick( View v )
+            {
+                if( myCurrentIndex == 0 )
+                {
+                    myCurrentIndex = myQuestionBank.length - 1;
+                }
+                else
+                {
+                    myCurrentIndex--;
+                }
+                updateQuestion();
+            }
+        } );
+        myNextButton = ( ImageButton ) findViewById( R.id.next_button );
         myNextButton.setOnClickListener( new OnClickListener()
         {
             @Override

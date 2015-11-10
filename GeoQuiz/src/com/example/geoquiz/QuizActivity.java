@@ -1,8 +1,12 @@
 package com.example.geoquiz;
 
-import android.app.Activity;
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,7 +17,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class QuizActivity extends Activity
+@TargetApi( Build.VERSION_CODES.HONEYCOMB )
+public class QuizActivity extends AppCompatActivity
 {
 
     private static final String CHEATED_LIST = "cheated_list";
@@ -34,7 +39,9 @@ public class QuizActivity extends Activity
             new TrueFalse( R.string.question_mideast, false ), new TrueFalse( R.string.question_africa, false ),
             new TrueFalse( R.string.question_americas, true ), new TrueFalse( R.string.question_asia, true ) };
 
-    private TextView myQuestionTextView;;
+    private TextView myQuestionTextView;
+
+    private TextView myAPIVersion;
 
     private void checkAnswer( Boolean answer )
     {
@@ -97,6 +104,15 @@ public class QuizActivity extends Activity
         }
         Log.d( TAG, "onCreate(Bundle) called" );
         setContentView( R.layout.activity_quiz );
+
+        myAPIVersion = ( TextView ) findViewById( R.id.api_version_view );
+        myAPIVersion.setText( "API Level " + Build.VERSION.SDK_INT );
+
+        if( Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB )
+        {
+            ActionBar actionBar = getSupportActionBar();
+            actionBar.setSubtitle( "Bodies of water" );
+        }
 
         myQuestionTextView = ( TextView ) findViewById( R.id.question_text_view );
         int question = myQuestionBank[myCurrentIndex].getQuestion();

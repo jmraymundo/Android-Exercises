@@ -27,6 +27,8 @@ public class QuizActivity extends Activity
 
     private ImageButton myPreviousButton;
 
+    private Button myCheatButton;
+
     private TrueFalse[] myQuestionBank = new TrueFalse[] { new TrueFalse( R.string.question_oceans, true ),
             new TrueFalse( R.string.question_mideast, false ), new TrueFalse( R.string.question_africa, false ),
             new TrueFalse( R.string.question_americas, true ), new TrueFalse( R.string.question_asia, true ) };
@@ -92,6 +94,16 @@ public class QuizActivity extends Activity
             {
                 myCurrentIndex = ( myCurrentIndex + 1 ) % myQuestionBank.length;
                 updateQuestion();
+            }
+        } );
+
+        myCheatButton = ( Button ) findViewById( R.id.cheat_button );
+        myCheatButton.setOnClickListener( new OnClickListener()
+        {
+            @Override
+            public void onClick( View v )
+            {
+                Toast.makeText( QuizActivity.this, "Cheating time!", Toast.LENGTH_SHORT ).show();
             }
         } );
     }

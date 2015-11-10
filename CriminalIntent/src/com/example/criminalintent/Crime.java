@@ -2,6 +2,8 @@ package com.example.criminalintent;
 
 import java.util.UUID;
 
+import android.util.Log;
+
 public class Crime
 {
     private UUID myId;
@@ -11,6 +13,7 @@ public class Crime
     public Crime()
     {
         myId = UUID.randomUUID();
+        Log.d( CrimeActivity.CRIMINAL_INTENT, "inside Crime constructor" );
     }
 
     public String getTitle()

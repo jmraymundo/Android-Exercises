@@ -1,0 +1,5 @@
+<resources>
+
+    <item name="viewPager" type="id"/>
+
+</resources>

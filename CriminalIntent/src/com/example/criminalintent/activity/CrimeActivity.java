@@ -1,10 +1,11 @@
+
 package com.example.criminalintent.activity;
 
 import java.util.UUID;
 
 import com.example.criminalintent.fragment.CrimeFragment;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 
 public class CrimeActivity extends SingleFragmentActivity
 {

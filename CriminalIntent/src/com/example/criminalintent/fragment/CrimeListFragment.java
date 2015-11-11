@@ -1,3 +1,4 @@
+
 package com.example.criminalintent.fragment;
 
 import java.util.ArrayList;
@@ -7,13 +8,12 @@ import com.example.criminalintent.activity.CrimeActivity;
 import com.example.criminalintent.object.Crime;
 import com.example.criminalintent.object.CrimeLab;
 
-import android.app.ListFragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;

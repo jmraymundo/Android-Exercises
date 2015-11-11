@@ -1,6 +1,9 @@
+
 package com.example.criminalintent.object;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import android.content.Context;
@@ -31,6 +34,11 @@ public class CrimeLab
             Crime crime = new Crime();
             crime.setTitle( "Crime #" + i );
             crime.setSolved( i % 2 == 0 );
+            Date date = new Date();
+            Calendar c = Calendar.getInstance();
+            c.setTime( date );
+            c.add( Calendar.YEAR, -2 );
+            crime.setDate( c.getTime() );
             myCrimes.add( crime );
         }
     }

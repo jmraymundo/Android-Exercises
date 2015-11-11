@@ -1,5 +1,7 @@
+
 package com.example.criminalintent.fragment;
 
+import java.util.Date;
 import java.util.UUID;
 
 import com.example.criminalintent.R;
@@ -7,12 +9,17 @@ import com.example.criminalintent.object.Crime;
 import com.example.criminalintent.object.CrimeLab;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -24,7 +31,9 @@ public class CrimeFragment extends Fragment
 {
     public static final String EXTRA_CRIME_ID = "com.example.criminalintent.fragment.crimeId";
 
-    public static final String EXTRA_CRIME = "com.example.criminalintent.fragment.crime";
+    public static final String DIALOG_DATE = "com.example.criminalintent.fragment.date";
+
+    public static final int REQUEST_DATE = 0;
 
     private Crime myCrime;
 
@@ -81,8 +90,22 @@ public class CrimeFragment extends Fragment
         } );
 
         myDateButton = ( Button ) v.findViewById( R.id.crime_date );
-        myDateButton.setText( myCrime.getDate().toString() );
-        myDateButton.setEnabled( false );
+        updateDate();
+        Log.d( "CriminalIntent",
+                "Initial date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDate() ) );
+        myDateButton.setEnabled( true );
+        myDateButton.setOnClickListener( new OnClickListener()
+        {
+            @Override
+            public void onClick( View v )
+            {
+                Log.d( "CriminalIntent", "Changing dates!" );
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                DatePickerFragment picker = DatePickerFragment.newInstance( myCrime.getDate() );
+                picker.setTargetFragment( CrimeFragment.this, REQUEST_DATE );
+                picker.show( fm, DIALOG_DATE );
+            }
+        } );
 
         mySolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );
         mySolvedCheckBox.setChecked( myCrime.isSolved() );
@@ -97,8 +120,34 @@ public class CrimeFragment extends Fragment
         return v;
     }
 
-    public void returnResult()
+    @Override
+    public void onResume()
     {
-        getActivity().setResult( Activity.RESULT_OK, null );
+        // TODO Auto-generated method stub
+        super.onResume();
+    }
+
+    private void updateDate()
+    {
+        myDateButton.setText( DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDate() ) );
+    }
+
+    @Override
+    public void onActivityResult( int requestCode, int resultCode, Intent data )
+    {
+        Log.d( "CriminalIntent", "Result received!" );
+        if( Activity.RESULT_OK != resultCode )
+        {
+            Log.d( "CriminalIntent", "Result code not ok!" );
+            return;
+        }
+        if( REQUEST_DATE == requestCode )
+        {
+            Date date = ( Date ) data.getSerializableExtra( DatePickerFragment.EXTRA_DATE );
+            Log.d( "CriminalIntent", "Result code ok!" );
+            Log.d( "CriminalIntent", "New date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", date ) );
+            myCrime.setDate( date );
+            updateDate();
+        }
     }
 }

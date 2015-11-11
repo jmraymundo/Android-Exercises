@@ -1,13 +1,17 @@
 package com.example.criminalintent;
 
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 
 public class CrimeFragment extends Fragment
@@ -15,6 +19,10 @@ public class CrimeFragment extends Fragment
     private Crime myCrime;
 
     private EditText myEditText;
+
+    private Button myDateButton;
+
+    private CheckBox mySolvedCheckBox;
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -50,6 +58,20 @@ public class CrimeFragment extends Fragment
             {
                 // TODO Auto-generated method stub
 
+            }
+        } );
+
+        myDateButton = ( Button ) v.findViewById( R.id.crime_date );
+        myDateButton.setText( myCrime.getDate().toString() );
+        myDateButton.setEnabled( false );
+
+        mySolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );
+        mySolvedCheckBox.setOnCheckedChangeListener( new OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
+            {
+                myCrime.setSolved( isChecked );
             }
         } );
         return v;

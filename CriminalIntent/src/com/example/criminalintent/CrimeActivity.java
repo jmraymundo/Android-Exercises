@@ -1,12 +1,12 @@
 package com.example.criminalintent;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
-public class CrimeActivity extends FragmentActivity
+public class CrimeActivity extends Activity
 {
 
     public final static String CRIMINAL_INTENT = "CriminalIntent";
@@ -18,7 +18,7 @@ public class CrimeActivity extends FragmentActivity
         Log.d( CRIMINAL_INTENT, "inside onCreate at CrimeActivity" );
         setContentView( R.layout.activity_crime );
 
-        FragmentManager fm = getSupportFragmentManager();
+        FragmentManager fm = getFragmentManager();
         Fragment fragment = fm.findFragmentById( R.id.fragmentContainer );
 
         if( null == fragment )

@@ -4,6 +4,8 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,7 +64,7 @@ public class CrimeFragment extends Fragment
         } );
 
         myDateButton = ( Button ) v.findViewById( R.id.crime_date );
-        myDateButton.setText( myCrime.getDate().toString() );
+        myDateButton.setText( DateFormat.format( "EEEE, MMM dd, yyyy", myCrime.getDate() ) );
         myDateButton.setEnabled( false );
 
         mySolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );

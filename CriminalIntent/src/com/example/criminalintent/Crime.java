@@ -3,6 +3,7 @@ package com.example.criminalintent;
 import java.util.Date;
 import java.util.UUID;
 
+import android.text.format.DateFormat;
 import android.util.Log;
 
 public class Crime

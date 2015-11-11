@@ -6,6 +6,7 @@ import com.example.criminalintent.R;
 import com.example.criminalintent.object.Crime;
 import com.example.criminalintent.object.CrimeLab;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +24,8 @@ import android.widget.EditText;
 public class CrimeFragment extends Fragment
 {
     public static final String EXTRA_CRIME_ID = "com.example.criminalintent.fragment.crimeId";
+
+    public static final String EXTRA_CRIME = "com.example.criminalintent.fragment.crime";
 
     private Crime myCrime;
 
@@ -93,5 +96,10 @@ public class CrimeFragment extends Fragment
             }
         } );
         return v;
+    }
+
+    public void returnResult()
+    {
+        getActivity().setResult( Activity.RESULT_OK, null );
     }
 }

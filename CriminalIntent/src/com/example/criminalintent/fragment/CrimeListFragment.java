@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -21,6 +22,8 @@ import android.widget.TextView;
 
 public class CrimeListFragment extends ListFragment
 {
+    private static final int REQUEST_CRIME = 0;
+
     private ArrayList< Crime > myCrimes;
 
     @Override
@@ -41,7 +44,23 @@ public class CrimeListFragment extends ListFragment
         Crime crime = ( ( CrimeAdapter ) getListAdapter() ).getItem( position );
         Intent i = new Intent( getActivity(), CrimeActivity.class );
         i.putExtra( CrimeFragment.EXTRA_CRIME_ID, crime.getId() );
-        startActivityForResult( i, R.layout.fragment_crime );
+        startActivityForResult( i, REQUEST_CRIME );
+    }
+
+    @Override
+    public void onActivityResult( int requestCode, int resultCode, Intent data )
+    {
+        if( REQUEST_CRIME == requestCode )
+        {
+
+        }
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        ( ( CrimeAdapter ) getListAdapter() ).notifyDataSetChanged();
     }
 
     private class CrimeAdapter extends ArrayAdapter< Crime >

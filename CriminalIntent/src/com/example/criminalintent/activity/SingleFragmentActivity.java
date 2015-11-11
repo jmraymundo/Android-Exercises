@@ -23,7 +23,7 @@ public abstract class SingleFragmentActivity extends Activity
 
         if( null == fragment )
         {
-            fragment = new CrimeFragment();
+            fragment = createFragment();
             fm.beginTransaction().add( R.id.fragmentContainer, fragment ).commit();
         }
     }

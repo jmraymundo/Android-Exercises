@@ -1,13 +1,16 @@
 package com.example.criminalintent.fragment;
 
+import java.util.UUID;
+
 import com.example.criminalintent.R;
 import com.example.criminalintent.object.Crime;
+import com.example.criminalintent.object.CrimeLab;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,8 @@ import android.widget.EditText;
 
 public class CrimeFragment extends Fragment
 {
+    public static final String EXTRA_CRIME_ID = "com.example.criminalintent.fragment.crimeId";
+
     private Crime myCrime;
 
     private Button myDateButton;
@@ -27,11 +32,21 @@ public class CrimeFragment extends Fragment
 
     private CheckBox mySolvedCheckBox;
 
+    public static CrimeFragment newInstance( UUID id )
+    {
+        Bundle args = new Bundle();
+        args.putSerializable( EXTRA_CRIME_ID, id );
+        CrimeFragment fragment = new CrimeFragment();
+        fragment.setArguments( args );
+        return fragment;
+    }
+
     @Override
     public void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
-        myCrime = new Crime();
+        UUID id = ( UUID ) getArguments().getSerializable( EXTRA_CRIME_ID );
+        myCrime = CrimeLab.get( getActivity() ).getCrime( id );
     }
 
     @Override
@@ -39,6 +54,7 @@ public class CrimeFragment extends Fragment
     {
         View v = inflater.inflate( R.layout.fragment_crime, container, false );
         myEditText = ( EditText ) v.findViewById( R.id.crime_title );
+        myEditText.setText( myCrime.getTitle() );
         myEditText.addTextChangedListener( new TextWatcher()
         {
             @Override
@@ -63,10 +79,11 @@ public class CrimeFragment extends Fragment
         } );
 
         myDateButton = ( Button ) v.findViewById( R.id.crime_date );
-        myDateButton.setText( DateFormat.format( "EEEE, MMM dd, yyyy", myCrime.getDate() ) );
+        myDateButton.setText( myCrime.getDate().toString() );
         myDateButton.setEnabled( false );
 
         mySolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );
+        mySolvedCheckBox.setChecked( myCrime.isSolved() );
         mySolvedCheckBox.setOnCheckedChangeListener( new OnCheckedChangeListener()
         {
             @Override

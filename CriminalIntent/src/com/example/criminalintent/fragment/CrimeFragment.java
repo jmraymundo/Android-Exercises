@@ -1,12 +1,13 @@
-package com.example.criminalintent;
+package com.example.criminalintent.fragment;
+
+import com.example.criminalintent.R;
+import com.example.criminalintent.object.Crime;
 
 import android.app.Fragment;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
-import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,16 +21,15 @@ public class CrimeFragment extends Fragment
 {
     private Crime myCrime;
 
-    private EditText myEditText;
-
     private Button myDateButton;
+
+    private EditText myEditText;
 
     private CheckBox mySolvedCheckBox;
 
     @Override
     public void onCreate( Bundle savedInstanceState )
     {
-        Log.d( CrimeActivity.CRIMINAL_INTENT, "inside onCreate at CrimeFragment" );
         super.onCreate( savedInstanceState );
         myCrime = new Crime();
     }
@@ -37,15 +37,15 @@ public class CrimeFragment extends Fragment
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
     {
-        Log.d( CrimeActivity.CRIMINAL_INTENT, "inside onCreateView at CrimeFragment" );
         View v = inflater.inflate( R.layout.fragment_crime, container, false );
         myEditText = ( EditText ) v.findViewById( R.id.crime_title );
         myEditText.addTextChangedListener( new TextWatcher()
         {
             @Override
-            public void onTextChanged( CharSequence s, int start, int before, int count )
+            public void afterTextChanged( Editable s )
             {
-                myCrime.setTitle( s.toString() );
+                // TODO Auto-generated method stub
+
             }
 
             @Override
@@ -56,10 +56,9 @@ public class CrimeFragment extends Fragment
             }
 
             @Override
-            public void afterTextChanged( Editable s )
+            public void onTextChanged( CharSequence s, int start, int before, int count )
             {
-                // TODO Auto-generated method stub
-
+                myCrime.setTitle( s.toString() );
             }
         } );
 

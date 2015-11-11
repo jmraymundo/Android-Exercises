@@ -1,22 +1,22 @@
-package com.example.criminalintent;
+package com.example.criminalintent.activity;
+
+import com.example.criminalintent.R;
+import com.example.criminalintent.fragment.CrimeFragment;
 
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.os.Bundle;
-import android.util.Log;
 
-public class CrimeActivity extends Activity
+public abstract class SingleFragmentActivity extends Activity
 {
-
-    public final static String CRIMINAL_INTENT = "CriminalIntent";
+    protected abstract Fragment createFragment();
 
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
-        Log.d( CRIMINAL_INTENT, "inside onCreate at CrimeActivity" );
-        setContentView( R.layout.activity_crime );
+        setContentView( R.layout.activity_fragment );
 
         FragmentManager fm = getFragmentManager();
         Fragment fragment = fm.findFragmentById( R.id.fragmentContainer );

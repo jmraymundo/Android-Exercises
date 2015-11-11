@@ -1,4 +1,4 @@
-package com.example.criminalintent;
+package com.example.criminalintent.object;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -9,16 +9,6 @@ public class CrimeLab
 {
     public static CrimeLab myCrimeLab;
 
-    private Context myContext;
-
-    private ArrayList< Crime > myCrimes;
-
-    private CrimeLab( Context appContext )
-    {
-        myContext = appContext;
-        myCrimes = new ArrayList< Crime >();
-    }
-
     public static CrimeLab get( Context context )
     {
         if( null == myCrimeLab )
@@ -28,9 +18,21 @@ public class CrimeLab
         return myCrimeLab;
     }
 
-    public ArrayList< Crime > getCrimes()
+    private Context myContext;
+
+    private ArrayList< Crime > myCrimes;
+
+    private CrimeLab( Context appContext )
     {
-        return myCrimes;
+        myContext = appContext;
+        myCrimes = new ArrayList< Crime >();
+        for( int i = 0; i < 100; i++ )
+        {
+            Crime crime = new Crime();
+            crime.setTitle( "Crime #" + i );
+            crime.setSolved( i % 2 == 0 );
+            myCrimes.add( crime );
+        }
     }
 
     public Crime getCrime( UUID id )
@@ -43,5 +45,10 @@ public class CrimeLab
             }
         }
         return null;
+    }
+
+    public ArrayList< Crime > getCrimes()
+    {
+        return myCrimes;
     }
 }

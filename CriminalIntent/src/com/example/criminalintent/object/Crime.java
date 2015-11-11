@@ -1,10 +1,7 @@
-package com.example.criminalintent;
+package com.example.criminalintent.object;
 
 import java.util.Date;
 import java.util.UUID;
-
-import android.text.format.DateFormat;
-import android.util.Log;
 
 public class Crime
 {
@@ -20,7 +17,6 @@ public class Crime
     {
         myId = UUID.randomUUID();
         myDate = new Date();
-        Log.d( CrimeActivity.CRIMINAL_INTENT, "inside Crime constructor" );
     }
 
     public Date getDate()

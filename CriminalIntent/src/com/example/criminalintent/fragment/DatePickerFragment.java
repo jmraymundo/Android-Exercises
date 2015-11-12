@@ -25,39 +25,42 @@ public class DatePickerFragment extends DialogFragment
 {
     public static final String EXTRA_DATE = "com.example.criminalintent.fragment.date";
 
-    private Date myDate;
-
-    public static DatePickerFragment newInstance( Date date )
+    public static DatePickerFragment newInstance( Date dateTime )
     {
         Bundle args = new Bundle();
-        args.putSerializable( EXTRA_DATE, date );
+        args.putSerializable( EXTRA_DATE, dateTime );
         DatePickerFragment fragment = new DatePickerFragment();
         fragment.setArguments( args );
         return fragment;
     }
 
+    private Calendar myCalendar;
+
+    private Date myDateTime;
+
     @Override
     public Dialog onCreateDialog( Bundle savedInstanceState )
     {
-        myDate = ( Date ) getArguments().get( EXTRA_DATE );
+        myDateTime = ( Date ) getArguments().get( EXTRA_DATE );
+        myCalendar = Calendar.getInstance();
+        myCalendar.setTime( myDateTime );
         View v = getActivity().getLayoutInflater().inflate( R.layout.dialog_date, null );
+        int year = myCalendar.get( Calendar.YEAR );
+        int month = myCalendar.get( Calendar.MONTH );
+        int day = myCalendar.get( Calendar.DAY_OF_MONTH );
 
-        Calendar c = Calendar.getInstance();
-        c.setTime( myDate );
-        int year = c.get( Calendar.YEAR );
-        int month = c.get( Calendar.MONTH );
-        int day = c.get( Calendar.DAY_OF_MONTH );
-
-        DatePicker datePicker = ( DatePicker ) v.findViewById( R.id.dialog_date_datePicker );
+        DatePicker datePicker = ( DatePicker ) v.findViewById( R.id.dialog_datePicker );
         datePicker.init( year, month, day, new OnDateChangedListener()
         {
             @Override
             public void onDateChanged( DatePicker view, int year, int monthOfYear, int dayOfMonth )
             {
-                myDate = new GregorianCalendar( year, monthOfYear, dayOfMonth ).getTime();
+                int hour = myCalendar.get( Calendar.HOUR_OF_DAY );
+                int minute = myCalendar.get( Calendar.MINUTE );
+                myDateTime = new GregorianCalendar( year, monthOfYear, dayOfMonth, hour, minute ).getTime();
                 Log.d( "CriminalIntent",
-                        "Date updated to: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myDate ) );
-                getArguments().putSerializable( EXTRA_DATE, myDate );
+                        "Date updated to: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myDateTime ) );
+                getArguments().putSerializable( EXTRA_DATE, myDateTime );
             }
         } );
 
@@ -78,13 +81,13 @@ public class DatePickerFragment extends DialogFragment
 
     private void sendResult( int resultCode )
     {
+        Log.d( "CriminalIntent", "Target fragment of datepicker: " + getTargetFragment().getClass().getSimpleName() );
         if( null == getTargetFragment() )
         {
             return;
         }
         Intent i = new Intent();
-        i.putExtra( EXTRA_DATE, myDate );
-
+        i.putExtra( EXTRA_DATE, myDateTime );
         getTargetFragment().onActivityResult( getTargetRequestCode(), resultCode, i );
     }
 }

@@ -38,7 +38,7 @@ public class CrimeLab
             Calendar c = Calendar.getInstance();
             c.setTime( date );
             c.add( Calendar.YEAR, -2 );
-            crime.setDate( c.getTime() );
+            crime.setDateTime( c.getTime() );
             myCrimes.add( crime );
         }
     }

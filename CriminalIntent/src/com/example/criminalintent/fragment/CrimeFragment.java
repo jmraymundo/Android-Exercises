@@ -35,9 +35,11 @@ public class CrimeFragment extends Fragment
 
     public static final int REQUEST_DATE = 0;
 
+    public static final int REQUEST_TIME = 1;
+
     private Crime myCrime;
 
-    private Button myDateButton;
+    private Button myDateTimeButton;
 
     private EditText myEditText;
 
@@ -89,21 +91,23 @@ public class CrimeFragment extends Fragment
             }
         } );
 
-        myDateButton = ( Button ) v.findViewById( R.id.crime_date );
+        myDateTimeButton = ( Button ) v.findViewById( R.id.crime_date );
         updateDate();
         Log.d( "CriminalIntent",
-                "Initial date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDate() ) );
-        myDateButton.setEnabled( true );
-        myDateButton.setOnClickListener( new OnClickListener()
+                "Initial date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDateTime() ) );
+        myDateTimeButton.setEnabled( true );
+        myDateTimeButton.setOnClickListener( new OnClickListener()
         {
             @Override
             public void onClick( View v )
             {
-                Log.d( "CriminalIntent", "Changing dates!" );
+                Log.d( "CriminalIntent", "Changing date and time!" );
+
                 FragmentManager fm = getActivity().getSupportFragmentManager();
-                DatePickerFragment picker = DatePickerFragment.newInstance( myCrime.getDate() );
-                picker.setTargetFragment( CrimeFragment.this, REQUEST_DATE );
+                DateTimePickerFragment picker = DateTimePickerFragment.newInstance( myCrime.getDateTime() );
+                picker.setTargetFragment( CrimeFragment.this, Integer.MIN_VALUE );
                 picker.show( fm, DIALOG_DATE );
+
             }
         } );
 
@@ -129,7 +133,7 @@ public class CrimeFragment extends Fragment
 
     private void updateDate()
     {
-        myDateButton.setText( DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDate() ) );
+        myDateTimeButton.setText( DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDateTime() ) );
     }
 
     @Override
@@ -146,7 +150,15 @@ public class CrimeFragment extends Fragment
             Date date = ( Date ) data.getSerializableExtra( DatePickerFragment.EXTRA_DATE );
             Log.d( "CriminalIntent", "Result code ok!" );
             Log.d( "CriminalIntent", "New date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", date ) );
-            myCrime.setDate( date );
+            myCrime.setDateTime( date );
+            updateDate();
+        }
+        else if( REQUEST_TIME == requestCode )
+        {
+            Date date = ( Date ) data.getSerializableExtra( TimePickerFragment.EXTRA_TIME );
+            Log.d( "CriminalIntent", "Result code ok!" );
+            Log.d( "CriminalIntent", "New date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", date ) );
+            myCrime.setDateTime( date );
             updateDate();
         }
     }

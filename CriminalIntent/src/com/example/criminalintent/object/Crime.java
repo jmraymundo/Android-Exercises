@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public class Crime
 {
-    private boolean isSolved;
+    private boolean mySolved;
 
-    private Date myDate;
+    private Date myDateTime;
 
     private UUID myId;
 
@@ -16,12 +16,12 @@ public class Crime
     public Crime()
     {
         myId = UUID.randomUUID();
-        myDate = new Date();
+        myDateTime = new Date();
     }
 
-    public Date getDate()
+    public Date getDateTime()
     {
-        return myDate;
+        return myDateTime;
     }
 
     public UUID getId()
@@ -36,22 +36,22 @@ public class Crime
 
     public boolean isSolved()
     {
-        return isSolved;
+        return mySolved;
     }
 
-    public void setDate( Date date )
+    public void setDateTime( Date newDateTime )
     {
-        myDate = date;
+        myDateTime = newDateTime;
     }
 
-    public void setSolved( boolean isSolved )
+    public void setSolved( boolean newSolved )
     {
-        this.isSolved = isSolved;
+        mySolved = newSolved;
     }
 
-    public void setTitle( String title )
+    public void setTitle( String newTitle )
     {
-        myTitle = title;
+        myTitle = newTitle;
     }
 
     @Override

@@ -12,5 +12,8 @@
     <string name="crime_date">Crime date</string>
     <string name="date_picker_title">Date of crime:</string>
     <string name="time_picker_title">Time of crime:</string>
+    <string name="datetime_picker_title">What to set:</string>
+    <string name="datetime_set_date">Set date</string>
+    <string name="datetime_set_time">Set time</string>
 
 </resources>

@@ -14,6 +14,11 @@
     <string name="time_picker_title">Time of crime:</string>
     <string name="datetime_picker_title">What to set:</string>
     <string name="datetime_set_date">Set date</string>
+    <string name="new_crime">New Crime</string>
+    <string name="show_subtitle">Show subtitle</string>
+    <string name="hide_subtitle">Hide subtitle</string>
+    <string name="subtitle">If you see something, say something</string>
+    <string name="delete_crime">Delete</string>
     <string name="datetime_set_time">Set time</string>
 
 </resources>

@@ -80,6 +80,11 @@ public class DateTimePickerFragment extends DialogFragment
             }
         } );
         Log.d( "CriminalIntent", "DateTimePickerFragment setTime button created!" );
+        return createDialog( v );
+    }
+
+    private Dialog createDialog( View v )
+    {
         Builder builder = new AlertDialog.Builder( getActivity() );
         builder.setView( v );
         builder.setTitle( R.string.datetime_picker_title );

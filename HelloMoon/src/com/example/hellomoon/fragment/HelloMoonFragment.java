@@ -36,8 +36,8 @@ public class HelloMoonFragment extends Fragment
                 myAudioPlayer.play( getActivity() );
             }
         } );
-        myPlayButton = ( Button ) v.findViewById( R.id.hellomoon_pausebutton );
-        myPlayButton.setOnClickListener( new OnClickListener()
+        myPauseButton = ( Button ) v.findViewById( R.id.hellomoon_pausebutton );
+        myPauseButton.setOnClickListener( new OnClickListener()
         {
             @Override
             public void onClick( View v )

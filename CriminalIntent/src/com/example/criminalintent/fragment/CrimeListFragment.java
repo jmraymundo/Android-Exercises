@@ -31,7 +31,6 @@ public class CrimeListFragment extends ListFragment
     public void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
-        getActivity().setTitle( R.string.crimes_title );
 
         myCrimes = CrimeLab.get( getActivity() ).getCrimes();
 

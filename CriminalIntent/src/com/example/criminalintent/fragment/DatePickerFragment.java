@@ -1,4 +1,3 @@
-
 package com.example.criminalintent.fragment;
 
 import java.util.Calendar;
@@ -9,90 +8,72 @@ import com.example.criminalintent.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 
-public class DatePickerFragment extends DialogFragment
-{
-    public static final String EXTRA_DATE = "com.example.criminalintent.fragment.date";
+public class DatePickerFragment extends DialogFragment {
+    public static final String EXTRA_DATE = "criminalintent.DATE";
 
-    public static DatePickerFragment newInstance( Date dateTime )
-    {
+    Date mDate;
+
+    public static DatePickerFragment newInstance(Date date) {
         Bundle args = new Bundle();
-        args.putSerializable( EXTRA_DATE, dateTime );
+        args.putSerializable(EXTRA_DATE, date);
+        
         DatePickerFragment fragment = new DatePickerFragment();
-        fragment.setArguments( args );
+        fragment.setArguments(args);
+
         return fragment;
     }
 
-    private Calendar myCalendar;
-
-    private Date myDateTime;
-
     @Override
-    public Dialog onCreateDialog( Bundle savedInstanceState )
-    {
-        myDateTime = ( Date ) getArguments().get( EXTRA_DATE );
-        myCalendar = Calendar.getInstance();
-        myCalendar.setTime( myDateTime );
-        View v = getActivity().getLayoutInflater().inflate( R.layout.dialog_date, null );
-        int year = myCalendar.get( Calendar.YEAR );
-        int month = myCalendar.get( Calendar.MONTH );
-        int day = myCalendar.get( Calendar.DAY_OF_MONTH );
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        mDate = (Date)getArguments().getSerializable(EXTRA_DATE);
 
-        DatePicker datePicker = ( DatePicker ) v.findViewById( R.id.dialog_datePicker );
-        datePicker.init( year, month, day, new OnDateChangedListener()
-        {
-            @Override
-            public void onDateChanged( DatePicker view, int year, int monthOfYear, int dayOfMonth )
-            {
-                int hour = myCalendar.get( Calendar.HOUR_OF_DAY );
-                int minute = myCalendar.get( Calendar.MINUTE );
-                myDateTime = new GregorianCalendar( year, monthOfYear, dayOfMonth, hour, minute ).getTime();
-                Log.d( "CriminalIntent",
-                        "Date updated to: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myDateTime ) );
-                getArguments().putSerializable( EXTRA_DATE, myDateTime );
-            }
-        } );
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(mDate);
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        Builder builder = new AlertDialog.Builder( getActivity() );
-        builder.setView( datePicker );
-        builder.setTitle( R.string.date_picker_title );
-        builder.setPositiveButton( android.R.string.ok, new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick( DialogInterface dialog, int which )
-            {
-                Log.d( "CriminalIntent", "Date change confirmed!" );
-                sendResult( Activity.RESULT_OK );
-                FragmentManager fm = getFragmentManager();
-                Fragment fragment = fm.findFragmentByTag( CrimeFragment.DIALOG_DATETIME );
-                ( ( DialogFragment ) fragment ).dismiss();
+        View v = getActivity().getLayoutInflater()
+            .inflate(R.layout.dialog_date, null);
+
+        DatePicker datePicker = (DatePicker)v.findViewById(R.id.dialog_date_datePicker);
+        datePicker.init(year, month, day, new OnDateChangedListener() {
+            public void onDateChanged(DatePicker view, int year, int month, int day) {
+                mDate = new GregorianCalendar(year, month, day).getTime();
+
+                // update argument to preserve selected value on rotation
+                getArguments().putSerializable(EXTRA_DATE, mDate);
             }
-        } );
-        return builder.create();
+        });
+
+        return new AlertDialog.Builder(getActivity())
+            .setView(v)
+            .setTitle(R.string.date_picker_title)
+            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    sendResult(Activity.RESULT_OK);
+                }
+            })
+            .create();
     }
 
-    private void sendResult( int resultCode )
-    {
-        Log.d( "CriminalIntent", "Target fragment of datepicker: " + getTargetFragment().getClass().getSimpleName() );
-        if( null == getTargetFragment() )
-        {
+    private void sendResult(int resultCode) {
+        if (getTargetFragment() == null) 
             return;
-        }
+
         Intent i = new Intent();
-        i.putExtra( EXTRA_DATE, myDateTime );
-        getTargetFragment().onActivityResult( getTargetRequestCode(), resultCode, i );
+        i.putExtra(EXTRA_DATE, mDate);
+
+        getTargetFragment()
+            .onActivityResult(getTargetRequestCode(), resultCode, i);
     }
 }

@@ -1,62 +1,113 @@
+
 package com.example.criminalintent.object;
 
 import java.util.Date;
 import java.util.UUID;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Crime
 {
-    private boolean mySolved;
 
-    private Date myDateTime;
+    private static final String JSON_DATE = "date";
 
-    private UUID myId;
+    private static final String JSON_ID = "id";
 
-    private String myTitle;
+    private static final String JSON_PHOTO = "photo";
+
+    private static final String JSON_SOLVED = "solved";
+
+    private static final String JSON_TITLE = "title";
+
+    private Date mDate;
+
+    private UUID mId;
+
+    private Photo mPhoto;
+
+    private boolean mSolved;
+
+    private String mTitle;
 
     public Crime()
     {
-        myId = UUID.randomUUID();
-        myDateTime = new Date();
+        mId = UUID.randomUUID();
+        mDate = new Date();
     }
 
-    public Date getDateTime()
+    public Crime( JSONObject json ) throws JSONException
     {
-        return myDateTime;
+        mId = UUID.fromString( json.getString( JSON_ID ) );
+        mTitle = json.getString( JSON_TITLE );
+        mSolved = json.getBoolean( JSON_SOLVED );
+        mDate = new Date( json.getLong( JSON_DATE ) );
+        if( json.has( JSON_PHOTO ) )
+        {
+            mPhoto = new Photo( json.getJSONObject( JSON_PHOTO ) );
+        }
+    }
+
+    public Date getDate()
+    {
+        return mDate;
     }
 
     public UUID getId()
     {
-        return myId;
+        return mId;
+    }
+
+    public Photo getPhoto()
+    {
+        return mPhoto;
     }
 
     public String getTitle()
     {
-        return myTitle;
+        return mTitle;
     }
 
     public boolean isSolved()
     {
-        return mySolved;
+        return mSolved;
     }
 
-    public void setDateTime( Date newDateTime )
+    public void setDate( Date date )
     {
-        myDateTime = newDateTime;
+        mDate = date;
     }
 
-    public void setSolved( boolean newSolved )
+    public void setPhoto( Photo photo )
     {
-        mySolved = newSolved;
+        mPhoto = photo;
     }
 
-    public void setTitle( String newTitle )
+    public void setSolved( boolean solved )
     {
-        myTitle = newTitle;
+        mSolved = solved;
+    }
+
+    public void setTitle( String title )
+    {
+        mTitle = title;
+    }
+
+    public JSONObject toJSON() throws JSONException
+    {
+        JSONObject json = new JSONObject();
+        json.put( JSON_ID, mId.toString() );
+        json.put( JSON_TITLE, mTitle );
+        json.put( JSON_DATE, mDate.getTime() );
+        json.put( JSON_SOLVED, mSolved );
+        json.put( JSON_PHOTO, mPhoto.toJSON() );
+        return json;
     }
 
     @Override
     public String toString()
     {
-        return getTitle();
+        return mTitle;
     }
+
 }

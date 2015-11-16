@@ -5,12 +5,15 @@ import java.util.Date;
 import java.util.UUID;
 
 import com.example.criminalintent.R;
+import com.example.criminalintent.activity.CrimeCameraActivity;
 import com.example.criminalintent.object.Crime;
 import com.example.criminalintent.object.CrimeLab;
+import com.example.criminalintent.object.Photo;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,53 +21,164 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 public class CrimeFragment extends Fragment
 {
-    public static final String EXTRA_CRIME_ID = "com.example.criminalintent.fragment.crimeId";
+    public static final String EXTRA_CRIME_ID = "criminalintent.CRIME_ID";
 
-    public static final String DIALOG_DATETIME = "com.example.criminalintent.fragment.datetime";
+    public static final String TAG = "CrimeFragment";
 
-    public static final int REQUEST_DATE = 0;
+    private static final String DIALOG_DATE = "date";
 
-    public static final int REQUEST_TIME = 1;
+    private static final int REQUEST_DATE = 0;
 
-    private Crime myCrime;
+    private static final int REQUEST_PHOTO = 1;
 
-    private Button myDateTimeButton;
+    Crime mCrime;
 
-    private EditText myEditText;
+    Button mDateButton;
 
-    private CheckBox mySolvedCheckBox;
+    ImageButton mPhotoButton;
 
-    public static CrimeFragment newInstance( UUID id )
+    ImageView mPhotoView;
+
+    CheckBox mSolvedCheckBox;
+
+    EditText mTitleField;
+
+    public static CrimeFragment newInstance( UUID crimeId )
     {
         Bundle args = new Bundle();
-        args.putSerializable( EXTRA_CRIME_ID, id );
+        args.putSerializable( EXTRA_CRIME_ID, crimeId );
+
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments( args );
+
         return fragment;
+    }
+
+    @Override
+    public void onActivityResult( int requestCode, int resultCode, Intent data )
+    {
+        if( resultCode != Activity.RESULT_OK ) return;
+        if( requestCode == REQUEST_DATE )
+        {
+            Date date = ( Date ) data.getSerializableExtra( DatePickerFragment.EXTRA_DATE );
+            mCrime.setDate( date );
+            updateDate();
+        }
+        if( requestCode == REQUEST_PHOTO )
+        {
+            String filename = data.getStringExtra( CrimeCameraFragment.EXTRA_PHOTO_FILENAME );
+            if( filename != null )
+            {
+                Photo photo = new Photo( filename );
+                mCrime.setPhoto( photo );
+                Log.i( TAG, "Crime: " + mCrime.getTitle() + " has a photo." );
+            }
+        }
     }
 
     @Override
     public void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
-        UUID id = ( UUID ) getArguments().getSerializable( EXTRA_CRIME_ID );
-        myCrime = CrimeLab.get( getActivity() ).getCrime( id );
+
+        UUID crimeId = ( UUID ) getArguments().getSerializable( EXTRA_CRIME_ID );
+        mCrime = CrimeLab.get( getActivity() ).getCrime( crimeId );
+
         setHasOptionsMenu( true );
+    }
+
+    @Override
+    @TargetApi( 11 )
+    public View onCreateView( LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState )
+    {
+        View v = inflater.inflate( R.layout.fragment_crime, parent, false );
+
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
+        {
+            getActivity().getActionBar().setDisplayHomeAsUpEnabled( true );
+        }
+
+        mTitleField = ( EditText ) v.findViewById( R.id.crime_title );
+        mTitleField.setText( mCrime.getTitle() );
+        mTitleField.addTextChangedListener( new TextWatcher()
+        {
+            public void afterTextChanged( Editable c )
+            {
+                // this one too
+            }
+
+            public void beforeTextChanged( CharSequence c, int start, int count, int after )
+            {
+                // this space intentionally left blank
+            }
+
+            public void onTextChanged( CharSequence c, int start, int before, int count )
+            {
+                mCrime.setTitle( c.toString() );
+            }
+        } );
+
+        mDateButton = ( Button ) v.findViewById( R.id.crime_date );
+        updateDate();
+        mDateButton.setOnClickListener( new View.OnClickListener()
+        {
+            public void onClick( View v )
+            {
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                DatePickerFragment dialog = DatePickerFragment.newInstance( mCrime.getDate() );
+                dialog.setTargetFragment( CrimeFragment.this, REQUEST_DATE );
+                dialog.show( fm, DIALOG_DATE );
+            }
+        } );
+
+        mSolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );
+        mSolvedCheckBox.setChecked( mCrime.isSolved() );
+        mSolvedCheckBox.setOnCheckedChangeListener( new OnCheckedChangeListener()
+        {
+            public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
+            {
+                // set the crime's solved property
+                mCrime.setSolved( isChecked );
+            }
+        } );
+
+        mPhotoButton = ( ImageButton ) v.findViewById( R.id.crime_imageButton );
+        mPhotoButton.setOnClickListener( new View.OnClickListener()
+        {
+            public void onClick( View v )
+            {
+                // launch the camera activity
+                Intent i = new Intent( getActivity(), CrimeCameraActivity.class );
+                startActivityForResult( i, REQUEST_PHOTO );
+            }
+        } );
+
+        // if camera is not available, disable camera functionality
+        PackageManager pm = getActivity().getPackageManager();
+        if( !pm.hasSystemFeature( PackageManager.FEATURE_CAMERA )
+                && !pm.hasSystemFeature( PackageManager.FEATURE_CAMERA_FRONT ) )
+        {
+            mPhotoButton.setEnabled( false );
+        }
+
+        mPhotoView = ( ImageView ) v.findViewById( R.id.crime_imageView );
+
+        return v;
     }
 
     @Override
@@ -72,122 +186,23 @@ public class CrimeFragment extends Fragment
     {
         switch( item.getItemId() )
         {
-            case ( android.R.id.home ):
-                if( NavUtils.getParentActivityName( getActivity() ) != null )
-                {
-                    NavUtils.navigateUpFromSameTask( getActivity() );
-                }
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask( getActivity() );
                 return true;
             default:
                 return super.onOptionsItemSelected( item );
         }
     }
 
-    @TargetApi( Build.VERSION_CODES.HONEYCOMB )
     @Override
-    public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
+    public void onPause()
     {
-        View v = inflater.inflate( R.layout.fragment_crime, container, false );
-
-        if( NavUtils.getParentActivityName( getActivity() ) != null
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
-        {
-            getActivity().getActionBar().setDisplayHomeAsUpEnabled( true );
-        }
-        myEditText = ( EditText ) v.findViewById( R.id.crime_title );
-        myEditText.setText( myCrime.getTitle() );
-        myEditText.addTextChangedListener( new TextWatcher()
-        {
-            @Override
-            public void afterTextChanged( Editable s )
-            {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void beforeTextChanged( CharSequence s, int start, int count, int after )
-            {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onTextChanged( CharSequence s, int start, int before, int count )
-            {
-                myCrime.setTitle( s.toString() );
-            }
-        } );
-
-        myDateTimeButton = ( Button ) v.findViewById( R.id.crime_date );
-        updateDate();
-        Log.d( "CriminalIntent",
-                "Initial date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDateTime() ) );
-        myDateTimeButton.setEnabled( true );
-        myDateTimeButton.setOnClickListener( new OnClickListener()
-        {
-            @Override
-            public void onClick( View v )
-            {
-                Log.d( "CriminalIntent", "Changing date and time!" );
-
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                DateTimePickerFragment picker = DateTimePickerFragment.newInstance( myCrime.getDateTime() );
-                picker.setTargetFragment( CrimeFragment.this, Integer.MIN_VALUE );
-                picker.show( fm, DIALOG_DATETIME );
-
-            }
-        } );
-
-        mySolvedCheckBox = ( CheckBox ) v.findViewById( R.id.crime_solved );
-        mySolvedCheckBox.setChecked( myCrime.isSolved() );
-        mySolvedCheckBox.setOnCheckedChangeListener( new OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
-            {
-                myCrime.setSolved( isChecked );
-            }
-        } );
-        return v;
+        super.onPause();
+        CrimeLab.get( getActivity() ).saveCrimes();
     }
 
-    @Override
-    public void onResume()
+    public void updateDate()
     {
-        // TODO Auto-generated method stub
-        super.onResume();
-    }
-
-    private void updateDate()
-    {
-        myDateTimeButton.setText( DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", myCrime.getDateTime() ) );
-    }
-
-    @Override
-    public void onActivityResult( int requestCode, int resultCode, Intent data )
-    {
-        Log.d( "CriminalIntent", "Result received!" );
-        if( Activity.RESULT_OK != resultCode )
-        {
-            Log.d( "CriminalIntent", "Result code not ok!" );
-            return;
-        }
-        if( REQUEST_DATE == requestCode )
-        {
-            Date date = ( Date ) data.getSerializableExtra( DatePickerFragment.EXTRA_DATE );
-            Log.d( "CriminalIntent", "Result code ok!" );
-            Log.d( "CriminalIntent", "New date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", date ) );
-            myCrime.setDateTime( date );
-            updateDate();
-        }
-        else if( REQUEST_TIME == requestCode )
-        {
-            Date date = ( Date ) data.getSerializableExtra( TimePickerFragment.EXTRA_TIME );
-            Log.d( "CriminalIntent", "Result code ok!" );
-            Log.d( "CriminalIntent", "New date: " + DateFormat.format( "EEE, MMM dd, yyyy - hh:mm aa", date ) );
-            myCrime.setDateTime( date );
-            updateDate();
-        }
+        mDateButton.setText( mCrime.getDate().toString() );
     }
 }

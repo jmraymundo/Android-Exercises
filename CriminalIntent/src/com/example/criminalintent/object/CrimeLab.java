@@ -1,55 +1,73 @@
-
 package com.example.criminalintent.object;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 
+import com.example.criminalintent.serializers.CriminalIntentJSONSerializer;
+
 import android.content.Context;
+import android.util.Log;
 
-public class CrimeLab
-{
-    public static CrimeLab myCrimeLab;
+public class CrimeLab {
+    private static final String FILENAME = "crimes.json";
+    private static CrimeLab sCrimeLab;
 
-    public static CrimeLab get( Context context )
-    {
-        if( null == myCrimeLab )
-        {
-            myCrimeLab = new CrimeLab( context.getApplicationContext() );
+    private static final String TAG = "CrimeLab";
+    private Context mAppContext;
+
+    private ArrayList<Crime> mCrimes;
+    private CriminalIntentJSONSerializer mSerializer;
+
+    private CrimeLab(Context appContext) {
+        mAppContext = appContext;
+        mSerializer = new CriminalIntentJSONSerializer(mAppContext, FILENAME);
+
+        try {
+            mCrimes = mSerializer.loadCrimes();
+        } catch (Exception e) {
+            mCrimes = new ArrayList<Crime>();
+            Log.e(TAG, "Error loading crimes: ", e);
         }
-        return myCrimeLab;
     }
 
-    private Context myContext;
-
-    private ArrayList< Crime > myCrimes;
-
-    private CrimeLab( Context appContext )
-    {
-        myContext = appContext;
-        myCrimes = new ArrayList< Crime >();
+    public static CrimeLab get(Context c) {
+        if (sCrimeLab == null) {
+            sCrimeLab = new CrimeLab(c.getApplicationContext());
+        }
+        return sCrimeLab;
     }
 
-    public Crime getCrime( UUID id )
-    {
-        for( Crime crime : myCrimes )
-        {
-            if( id.equals( crime.getId() ) )
-            {
-                return crime;
-            }
+    public void addCrime(Crime c) {
+        mCrimes.add(c);
+        saveCrimes();
+    }
+    
+    public void deleteCrime(Crime c) {
+        mCrimes.remove(c);
+        saveCrimes();
+    }
+
+    public Crime getCrime(UUID id) {
+        for (Crime c : mCrimes) {
+            if (c.getId().equals(id))
+                return c;
         }
         return null;
     }
 
-    public ArrayList< Crime > getCrimes()
-    {
-        return myCrimes;
+    public ArrayList<Crime> getCrimes() {
+        return mCrimes;
     }
 
-    public void addCrime( Crime c )
-    {
-        myCrimes.add( c );
+    public boolean saveCrimes() {
+        try {
+            mSerializer.saveCrimes(mCrimes);
+            Log.d(TAG, "crimes saved to file");
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Error saving crimes: " + e);
+            return false;
+        }
     }
 }
+

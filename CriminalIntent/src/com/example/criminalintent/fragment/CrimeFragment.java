@@ -8,16 +8,20 @@ import com.example.criminalintent.R;
 import com.example.criminalintent.object.Crime;
 import com.example.criminalintent.object.CrimeLab;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -31,7 +35,7 @@ public class CrimeFragment extends Fragment
 {
     public static final String EXTRA_CRIME_ID = "com.example.criminalintent.fragment.crimeId";
 
-    public static final String DIALOG_DATE = "com.example.criminalintent.fragment.date";
+    public static final String DIALOG_DATETIME = "com.example.criminalintent.fragment.datetime";
 
     public static final int REQUEST_DATE = 0;
 
@@ -60,12 +64,36 @@ public class CrimeFragment extends Fragment
         super.onCreate( savedInstanceState );
         UUID id = ( UUID ) getArguments().getSerializable( EXTRA_CRIME_ID );
         myCrime = CrimeLab.get( getActivity() ).getCrime( id );
+        setHasOptionsMenu( true );
     }
 
+    @Override
+    public boolean onOptionsItemSelected( MenuItem item )
+    {
+        switch( item.getItemId() )
+        {
+            case ( android.R.id.home ):
+                if( NavUtils.getParentActivityName( getActivity() ) != null )
+                {
+                    NavUtils.navigateUpFromSameTask( getActivity() );
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected( item );
+        }
+    }
+
+    @TargetApi( Build.VERSION_CODES.HONEYCOMB )
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
     {
         View v = inflater.inflate( R.layout.fragment_crime, container, false );
+
+        if( NavUtils.getParentActivityName( getActivity() ) != null
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
+        {
+            getActivity().getActionBar().setDisplayHomeAsUpEnabled( true );
+        }
         myEditText = ( EditText ) v.findViewById( R.id.crime_title );
         myEditText.setText( myCrime.getTitle() );
         myEditText.addTextChangedListener( new TextWatcher()
@@ -106,7 +134,7 @@ public class CrimeFragment extends Fragment
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 DateTimePickerFragment picker = DateTimePickerFragment.newInstance( myCrime.getDateTime() );
                 picker.setTargetFragment( CrimeFragment.this, Integer.MIN_VALUE );
-                picker.show( fm, DIALOG_DATE );
+                picker.show( fm, DIALOG_DATETIME );
 
             }
         } );

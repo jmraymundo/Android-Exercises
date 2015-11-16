@@ -88,7 +88,6 @@ public class DateTimePickerFragment extends DialogFragment
         Builder builder = new AlertDialog.Builder( getActivity() );
         builder.setView( v );
         builder.setTitle( R.string.datetime_picker_title );
-        builder.setPositiveButton( android.R.string.ok, null );
         return builder.create();
     }
 }

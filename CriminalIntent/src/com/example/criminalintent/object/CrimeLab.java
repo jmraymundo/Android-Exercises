@@ -29,18 +29,6 @@ public class CrimeLab
     {
         myContext = appContext;
         myCrimes = new ArrayList< Crime >();
-        for( int i = 0; i < 100; i++ )
-        {
-            Crime crime = new Crime();
-            crime.setTitle( "Crime #" + i );
-            crime.setSolved( i % 2 == 0 );
-            Date date = new Date();
-            Calendar c = Calendar.getInstance();
-            c.setTime( date );
-            c.add( Calendar.YEAR, -2 );
-            crime.setDateTime( c.getTime() );
-            myCrimes.add( crime );
-        }
     }
 
     public Crime getCrime( UUID id )
@@ -58,5 +46,10 @@ public class CrimeLab
     public ArrayList< Crime > getCrimes()
     {
         return myCrimes;
+    }
+
+    public void addCrime( Crime c )
+    {
+        myCrimes.add( c );
     }
 }

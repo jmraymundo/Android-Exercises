@@ -1,8 +1,12 @@
 
 package com.example.criminalintent.object;
 
+import java.io.FileOutputStream;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.content.Context;
 
 public class Photo
 {

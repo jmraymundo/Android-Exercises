@@ -27,7 +27,7 @@ import android.widget.Button;
 
 public class CrimeCameraFragment extends Fragment
 {
-    public static final String EXTRA_PHOTO_FILENAME = "com.bignerdranch.android.criminalintent.photo_filename";
+    public static final String EXTRA_PHOTO_FILENAME = "com.example.criminalintent.photo_filename";
 
     private static final String TAG = "CrimeCameraFragment";
 

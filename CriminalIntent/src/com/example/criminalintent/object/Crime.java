@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.text.format.DateFormat;
+
 public class Crime
 {
 
@@ -22,7 +24,7 @@ public class Crime
 
     private static final String JSON_SUSPECT = "suspect";
 
-    private Date mDate;
+    private MyDate mDate;
 
     private UUID mId;
 
@@ -37,7 +39,7 @@ public class Crime
     public Crime()
     {
         mId = UUID.randomUUID();
-        mDate = new Date();
+        mDate = new MyDate();
     }
 
     public Crime( JSONObject json ) throws JSONException
@@ -45,7 +47,7 @@ public class Crime
         mId = UUID.fromString( json.getString( JSON_ID ) );
         mTitle = json.getString( JSON_TITLE );
         mSolved = json.getBoolean( JSON_SOLVED );
-        mDate = new Date( json.getLong( JSON_DATE ) );
+        mDate = new MyDate( json.getLong( JSON_DATE ) );
         if( json.has( JSON_PHOTO ) )
         {
             mPhoto = new Photo( json.getJSONObject( JSON_PHOTO ) );
@@ -83,7 +85,7 @@ public class Crime
 
     public void setDate( Date date )
     {
-        mDate = date;
+        mDate = new MyDate( date.getTime() );
     }
 
     public void setPhoto( Photo photo )
@@ -135,4 +137,22 @@ public class Crime
         mSuspect = suspect;
     }
 
+    private class MyDate extends Date
+    {
+        public MyDate( long milliseconds )
+        {
+            super( milliseconds );
+        }
+
+        public MyDate()
+        {
+            super();
+        }
+
+        @Override
+        public String toString()
+        {
+            return DateFormat.format( "EEE, MMM dd, yyyy", this ).toString();
+        }
+    }
 }

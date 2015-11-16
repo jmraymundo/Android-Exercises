@@ -58,8 +58,6 @@ public class CrimeFragment extends Fragment
 
     private static final int REQUEST_CONTACT = 2;
 
-    private static final int REQUEST_SPECIFIC_CONTACT = 3;
-
     Crime mCrime;
 
     Button mDateButton;
@@ -73,6 +71,8 @@ public class CrimeFragment extends Fragment
     EditText mTitleField;
 
     Button mSuspectButton;
+
+    private Button mCallButton;
 
     public static CrimeFragment newInstance( UUID crimeId )
     {
@@ -124,10 +124,8 @@ public class CrimeFragment extends Fragment
             String suspect = cursor.getString( 0 );
             mCrime.setSuspect( suspect );
             mSuspectButton.setText( suspect );
+            mCallButton.setEnabled( mCrime.getSuspect() != null );
             cursor.close();
-        }
-        else if( requestCode == REQUEST_SPECIFIC_CONTACT )
-        {
         }
     }
 
@@ -263,8 +261,9 @@ public class CrimeFragment extends Fragment
             }
         } );
 
-        Button callButton = ( Button ) v.findViewById( R.id.crime_callSuspectButton );
-        callButton.setOnClickListener( new OnClickListener()
+        mCallButton = ( Button ) v.findViewById( R.id.crime_callSuspectButton );
+        mCallButton.setEnabled( mCrime.getSuspect() != null );
+        mCallButton.setOnClickListener( new OnClickListener()
         {
             @Override
             public void onClick( View v )

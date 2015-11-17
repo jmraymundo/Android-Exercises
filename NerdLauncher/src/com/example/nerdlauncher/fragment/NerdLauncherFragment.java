@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import android.R;
+import com.example.nerdlauncher.R;
+
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
@@ -47,7 +49,7 @@ public class NerdLauncherFragment extends ListFragment
         } );
 
         ArrayAdapter< ResolveInfo > adapter = new ArrayAdapter< ResolveInfo >( getActivity(),
-                R.layout.simple_list_item_1, activities)
+                android.R.layout.simple_list_item_1, activities)
         {
             @Override
             public View getView( int position, View convertView, ViewGroup parent )
@@ -56,6 +58,10 @@ public class NerdLauncherFragment extends ListFragment
                 View v = super.getView( position, convertView, parent );
                 TextView tv = ( TextView ) v;
                 ResolveInfo ri = getItem( position );
+                Drawable icon = ri.loadIcon( pm );
+                int iconLengthWidth = ( int ) getResources().getDimension( android.R.dimen.app_icon_size );
+                icon.setBounds( 0, 0, iconLengthWidth, iconLengthWidth );
+                tv.setCompoundDrawables( icon, null, null, null );
                 tv.setText( ri.loadLabel( pm ) );
                 return v;
             }
@@ -76,6 +82,7 @@ public class NerdLauncherFragment extends ListFragment
 
         Intent i = new Intent( Intent.ACTION_MAIN );
         i.setClassName( activityInfo.applicationInfo.packageName, activityInfo.name );
+        i.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
         startActivity( i );
     }
 }

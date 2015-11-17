@@ -33,4 +33,7 @@
 	<include
 		android:layout_weight="1"
 		layout="@layout/button_row" />
+	<include
+		android:layout_weight="1"
+		layout="@layout/button_row" />
 </TableLayout>

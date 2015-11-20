@@ -17,13 +17,14 @@ import com.example.photogallery.object.GalleryItem;
 
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
 
 public class FlickrFetcher
 {
-    public static final String TAG = "FlickrFetcher";
+    public static final String PREF_LAST_RESULT_ID = "lastResultId";
 
     public static final String PREF_SEARCH_QUERY = "searchQuery";
+
+    public static final String TAG = "FlickrFetcher";
 
     private static final String API_KEY = "96d49464b6ab05385f4b33e1d8ee82bd";
 
@@ -122,7 +123,6 @@ public class FlickrFetcher
         try
         {
             String xml = getUrl( url );
-            Log.i( TAG, "Received XML: " + xml );
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser parser = factory.newPullParser();
             parser.setInput( new StringReader( xml ) );

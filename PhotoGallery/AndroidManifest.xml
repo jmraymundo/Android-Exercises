@@ -7,6 +7,7 @@
 		android:minSdkVersion="11"
 		android:targetSdkVersion="23" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<application
 		android:allowBackup="true"
 		android:icon="@drawable/ic_launcher"
@@ -27,5 +28,6 @@
 				android:name="android.app.searchable"
 				android:resource="@xml/searchable" />
 		</activity>
+		<service android:name=".services.PollService" />
 	</application>
 </manifest>

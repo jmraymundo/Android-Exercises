@@ -17,7 +17,6 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.support.v4.util.LruCache;
 import android.util.Log;
-import android.util.SparseArray;
 
 public class ThumbnailDownloader< Token > extends HandlerThread
 {
@@ -56,7 +55,6 @@ public class ThumbnailDownloader< Token > extends HandlerThread
     {
         while( isAlreadyPreloading )
         {
-            Log.i( TAG, "Already preloading. Holding preloading of image: " + items.indexOf( param ) );
             try
             {
                 wait();
@@ -84,7 +82,6 @@ public class ThumbnailDownloader< Token > extends HandlerThread
 
     public void queueThumbnail( Token token, String url )
     {
-        Log.i( TAG, "Got a URL: " + url );
         requestMap.put( token, url );
         mHandler.obtainMessage( MESSAGE_DOWNLOAD, token ).sendToTarget();
     }
@@ -128,12 +125,10 @@ public class ThumbnailDownloader< Token > extends HandlerThread
         if( null == tempBitmap )
         {
             bitmap = getImage( url );
-            Log.i( TAG, "Bitmap created" );
         }
         else
         {
             bitmap = tempBitmap;
-            Log.i( TAG, "Bitmap still in cache" );
         }
 
         mResponseHandler.post( new Runnable()
@@ -181,7 +176,6 @@ public class ThumbnailDownloader< Token > extends HandlerThread
                 if( msg.what == MESSAGE_DOWNLOAD )
                 {
                     Token token = ( Token ) msg.obj;
-                    Log.i( TAG, "Got a request for url: " + requestMap.get( token ) );
                     handleRequest( token );
                 }
             }

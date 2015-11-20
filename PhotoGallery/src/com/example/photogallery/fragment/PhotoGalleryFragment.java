@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.example.photogallery.R;
 import com.example.photogallery.object.GalleryItem;
+import com.example.photogallery.services.PollService;
 import com.example.photogallery.utils.FlickrFetcher;
 import com.example.photogallery.utils.ThumbnailDownloader;
 import com.example.photogallery.utils.ThumbnailDownloader.Listener;
@@ -14,6 +15,7 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -32,7 +34,6 @@ import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 public class PhotoGalleryFragment extends Fragment
 {
@@ -69,9 +70,20 @@ public class PhotoGalleryFragment extends Fragment
         Log.i( TAG, "Background thread started." );
     }
 
-    public void updateItems()
+    @Override
+    public void onCreateOptionsMenu( Menu menu, MenuInflater inflater )
     {
-        new FetchItemsTask().execute();
+        super.onCreateOptionsMenu( menu, inflater );
+        inflater.inflate( R.menu.fragment_photo_gallery, menu );
+        if( isBuildHoneycombOrNewer() )
+        {
+            MenuItem searchItem = menu.findItem( R.id.menu_item_search );
+            SearchView searchView = ( SearchView ) searchItem.getActionView();
+            SearchManager searchManager = ( SearchManager ) getActivity().getSystemService( Context.SEARCH_SERVICE );
+            ComponentName name = getActivity().getComponentName();
+            SearchableInfo searchInfo = searchManager.getSearchableInfo( name );
+            searchView.setSearchableInfo( searchInfo );
+        }
     }
 
     @Override
@@ -92,19 +104,10 @@ public class PhotoGalleryFragment extends Fragment
     }
 
     @Override
-    public void onCreateOptionsMenu( Menu menu, MenuInflater inflater )
+    public void onDestroyView()
     {
-        super.onCreateOptionsMenu( menu, inflater );
-        inflater.inflate( R.menu.fragment_photo_gallery, menu );
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
-        {
-            MenuItem searchItem = menu.findItem( R.id.menu_item_search );
-            SearchView searchView = ( SearchView ) searchItem.getActionView();
-            SearchManager searchManager = ( SearchManager ) getActivity().getSystemService( Context.SEARCH_SERVICE );
-            ComponentName name = getActivity().getComponentName();
-            SearchableInfo searchInfo = searchManager.getSearchableInfo( name );
-            searchView.setSearchableInfo( searchInfo );
-        }
+        super.onDestroyView();
+        mThumbnailThread.clearQueue();
     }
 
     @Override
@@ -120,16 +123,41 @@ public class PhotoGalleryFragment extends Fragment
                         .putString( FlickrFetcher.PREF_SEARCH_QUERY, null ).commit();
                 updateItems();
                 return true;
+            case R.id.menu_item_toggle_polling:
+                PollService.setAlarmService( getActivity(), !PollService.isServiceAlarmOn( getActivity() ) );
+                if( isBuildHoneycombOrNewer() )
+                {
+                    getActivity().invalidateOptionsMenu();
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected( item );
         }
     }
 
     @Override
-    public void onDestroyView()
+    public void onPrepareOptionsMenu( Menu menu )
     {
-        super.onDestroyView();
-        mThumbnailThread.clearQueue();
+        super.onPrepareOptionsMenu( menu );
+        MenuItem toggleItem = menu.findItem( R.id.menu_item_toggle_polling );
+        if( PollService.isServiceAlarmOn( getActivity() ) )
+        {
+            toggleItem.setTitle( R.string.stop_polling );
+        }
+        else
+        {
+            toggleItem.setTitle( R.string.start_polling );
+        }
+    }
+
+    public void updateItems()
+    {
+        new FetchItemsTask().execute();
+    }
+
+    private boolean isBuildHoneycombOrNewer()
+    {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
     }
 
     private void setupAdapter()
@@ -176,8 +204,6 @@ public class PhotoGalleryFragment extends Fragment
         protected void onPostExecute( ArrayList< GalleryItem > result )
         {
             mItems = result;
-            String query = PreferenceManager.getDefaultSharedPreferences( getActivity() )
-                    .getString( FlickrFetcher.PREF_SEARCH_QUERY, null );
             setupAdapter();
         }
     }

@@ -22,15 +22,15 @@ public class FlickrFetcher
 {
     public static final String TAG = "FlickrFetcher";
 
+    private static final String API_KEY = "96d49464b6ab05385f4b33e1d8ee82bd";
+
     private static final String ENDPOINT = "https://api.flickr.com/services/rest";
 
-    private static final String API_KEY = "96d49464b6ab05385f4b33e1d8ee82bd";
+    private static final String EXTRA_SMALL_URL = "url_s";
 
     private static final String METHOD_GET_RECENT = "flickr.photos.getRecent";
 
     private static final String PARAM_EXTRAS = "extras";
-
-    private static final String EXTRA_SMALL_URL = "url_s";
 
     private static final String XML_PHOTO = "photo";
 
@@ -60,23 +60,9 @@ public class FlickrFetcher
         return items;
     }
 
-    public void parseItems( ArrayList< GalleryItem > items, XmlPullParser parser )
-            throws XmlPullParserException, IOException
+    public String getUrl( String urlSpec ) throws IOException
     {
-        int eventType = parser.next();
-        while( eventType != XmlPullParser.END_DOCUMENT )
-        {
-            if( eventType == XmlPullParser.START_TAG && XML_PHOTO.equals( parser.getName() ) )
-            {
-                String id = parser.getAttributeValue( null, "id" );
-                String caption = parser.getAttributeValue( null, "title" );
-                String smallUrl = parser.getAttributeValue( null, EXTRA_SMALL_URL );
-
-                GalleryItem item = new GalleryItem( id, caption, smallUrl );
-                items.add( item );
-            }
-            eventType = parser.next();
-        }
+        return new String( getUrlBytes( urlSpec ) );
     }
 
     public byte[] getUrlBytes( String urlSpec ) throws IOException
@@ -110,8 +96,22 @@ public class FlickrFetcher
 
     }
 
-    public String getUrl( String urlSpec ) throws IOException
+    public void parseItems( ArrayList< GalleryItem > items, XmlPullParser parser )
+            throws XmlPullParserException, IOException
     {
-        return new String( getUrlBytes( urlSpec ) );
+        int eventType = parser.next();
+        while( eventType != XmlPullParser.END_DOCUMENT )
+        {
+            if( eventType == XmlPullParser.START_TAG && XML_PHOTO.equals( parser.getName() ) )
+            {
+                String id = parser.getAttributeValue( null, "id" );
+                String caption = parser.getAttributeValue( null, "title" );
+                String smallUrl = parser.getAttributeValue( null, EXTRA_SMALL_URL );
+
+                GalleryItem item = new GalleryItem( id, caption, smallUrl );
+                items.add( item );
+            }
+            eventType = parser.next();
+        }
     }
 }

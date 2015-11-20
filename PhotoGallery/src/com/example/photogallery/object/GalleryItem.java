@@ -16,19 +16,9 @@ public class GalleryItem
         setUrl( smallUrl );
     }
 
-    public String toString()
-    {
-        return mCaption;
-    }
-
     public String getCaption()
     {
         return mCaption;
-    }
-
-    public void setCaption( String caption )
-    {
-        mCaption = caption;
     }
 
     public String getId()
@@ -36,18 +26,29 @@ public class GalleryItem
         return mId;
     }
 
-    public void setId( String id )
-    {
-        mId = id;
-    }
-
     public String getUrl()
     {
         return mUrl;
     }
 
+    public void setCaption( String caption )
+    {
+        mCaption = caption;
+    }
+
+    public void setId( String id )
+    {
+        mId = id;
+    }
+
     public void setUrl( String url )
     {
         mUrl = url;
+    }
+
+    @Override
+    public String toString()
+    {
+        return mCaption;
     }
 }

@@ -6,10 +6,15 @@ import java.util.ArrayList;
 import com.example.photogallery.R;
 import com.example.photogallery.object.GalleryItem;
 import com.example.photogallery.utils.FlickrFetcher;
+import com.example.photogallery.utils.ThumbnailDownloader;
+import com.example.photogallery.utils.ThumbnailDownloader.Listener;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +24,13 @@ import android.widget.ImageView;
 
 public class PhotoGalleryFragment extends Fragment
 {
+    private static final String TAG = "PhotoGalleryFragment";
+
     private GridView mGridView;
 
     private ArrayList< GalleryItem > mItems;
 
-    private static final String TAG = "PhotoGalleryFragment";
+    private ThumbnailDownloader< ImageView > mThumbnailThread;
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -31,6 +38,22 @@ public class PhotoGalleryFragment extends Fragment
         super.onCreate( savedInstanceState );
         setRetainInstance( true );
         new FetchItemsTask().execute();
+
+        mThumbnailThread = new ThumbnailDownloader< ImageView >( new Handler() );
+        mThumbnailThread.setListener( new Listener< ImageView >()
+        {
+            @Override
+            public void onThumbnailDownload( ImageView token, Bitmap thumbnail )
+            {
+                if( isVisible() )
+                {
+                    token.setImageBitmap( thumbnail );
+                }
+            }
+        } );
+        mThumbnailThread.start();
+        mThumbnailThread.getLooper();
+        Log.i( TAG, "Background thread started." );
     }
 
     @Override
@@ -40,6 +63,21 @@ public class PhotoGalleryFragment extends Fragment
         mGridView = ( GridView ) v.findViewById( R.id.gridView );
         setupAdapter();
         return v;
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        mThumbnailThread.quit();
+        Log.i( TAG, "Background thread destroyed." );
+    }
+
+    @Override
+    public void onDestroyView()
+    {
+        super.onDestroyView();
+        mThumbnailThread.clearQueue();
     }
 
     private void setupAdapter()
@@ -91,7 +129,20 @@ public class PhotoGalleryFragment extends Fragment
 
             ImageView imageView = ( ImageView ) convertView.findViewById( R.id.gallery_item_imageView );
             imageView.setImageResource( R.drawable.brian_up_close );
+            GalleryItem item = getItem( position );
+            mThumbnailThread.queueThumbnail( imageView, item.getUrl() );
+            new PreloadImagesTask().execute( item );
             return convertView;
+        }
+    }
+
+    private class PreloadImagesTask extends AsyncTask< GalleryItem, Void, Void >
+    {
+        @Override
+        protected Void doInBackground( GalleryItem... params )
+        {
+            mThumbnailThread.preLoad( mItems, params[0] );
+            return null;
         }
     }
 }

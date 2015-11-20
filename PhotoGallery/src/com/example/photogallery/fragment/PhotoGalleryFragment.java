@@ -101,7 +101,16 @@ public class PhotoGalleryFragment extends Fragment
         @Override
         protected ArrayList< GalleryItem > doInBackground( Void... params )
         {
-            return new FlickrFetcher().fetchItems();
+            String query = "android";
+            FlickrFetcher flickrFetcher = new FlickrFetcher();
+            if( query == null )
+            {
+                return flickrFetcher.fetchItems();
+            }
+            else
+            {
+                return flickrFetcher.search( query );
+            }
         }
 
         @Override

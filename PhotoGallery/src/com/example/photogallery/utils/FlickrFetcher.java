@@ -28,36 +28,26 @@ public class FlickrFetcher
 
     private static final String EXTRA_SMALL_URL = "url_s";
 
+    private static final String KEYWORD_API_KEY = "api_key";
+
+    private static final String KEYWORD_EXTRA = "extras";
+
+    private static final String KEYWORD_METHOD = "method";
+
+    private static final String KEYWORD_TEXT = "text";
+
     private static final String METHOD_GET_RECENT = "flickr.photos.getRecent";
 
-    private static final String PARAM_EXTRAS = "extras";
+    private static final String METHOD_SEARCH = "flickr.photos.search";
 
     private static final String XML_PHOTO = "photo";
 
     public ArrayList< GalleryItem > fetchItems()
     {
-        ArrayList< GalleryItem > items = new ArrayList< GalleryItem >();
-        try
-        {
-            String url = Uri.parse( ENDPOINT ).buildUpon().appendQueryParameter( "method", METHOD_GET_RECENT )
-                    .appendQueryParameter( "api_key", API_KEY ).appendQueryParameter( PARAM_EXTRAS, EXTRA_SMALL_URL )
-                    .build().toString();
-            String xml = getUrl( url );
-            Log.i( TAG, "Received XML: " + xml );
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            XmlPullParser parser = factory.newPullParser();
-            parser.setInput( new StringReader( xml ) );
-            parseItems( items, parser );
-        }
-        catch( IOException e )
-        {
-            Log.e( TAG, "Failed to fetch items: " + e );
-        }
-        catch( XmlPullParserException e )
-        {
-            Log.e( TAG, "Failed to parse items: " + e );
-        }
-        return items;
+        String url = Uri.parse( ENDPOINT ).buildUpon().appendQueryParameter( KEYWORD_METHOD, METHOD_GET_RECENT )
+                .appendQueryParameter( KEYWORD_API_KEY, API_KEY ).appendQueryParameter( KEYWORD_EXTRA, EXTRA_SMALL_URL )
+                .build().toString();
+        return downloadGalleryItems( url );
     }
 
     public String getUrl( String urlSpec ) throws IOException
@@ -113,5 +103,36 @@ public class FlickrFetcher
             }
             eventType = parser.next();
         }
+    }
+
+    public ArrayList< GalleryItem > search( String query )
+    {
+        String url = Uri.parse( ENDPOINT ).buildUpon().appendQueryParameter( KEYWORD_METHOD, METHOD_SEARCH )
+                .appendQueryParameter( KEYWORD_API_KEY, API_KEY ).appendQueryParameter( KEYWORD_EXTRA, EXTRA_SMALL_URL )
+                .appendQueryParameter( KEYWORD_TEXT, query ).build().toString();
+        return downloadGalleryItems( url );
+    }
+
+    private ArrayList< GalleryItem > downloadGalleryItems( String url )
+    {
+        ArrayList< GalleryItem > items = new ArrayList< GalleryItem >();
+        try
+        {
+            String xml = getUrl( url );
+            Log.i( TAG, "Received XML: " + xml );
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            XmlPullParser parser = factory.newPullParser();
+            parser.setInput( new StringReader( xml ) );
+            parseItems( items, parser );
+        }
+        catch( IOException e )
+        {
+            Log.e( TAG, "Failed to fetch items: " + e );
+        }
+        catch( XmlPullParserException e )
+        {
+            Log.e( TAG, "Failed to parse items: " + e );
+        }
+        return items;
     }
 }

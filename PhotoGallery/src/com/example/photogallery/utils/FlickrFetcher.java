@@ -17,10 +17,13 @@ import com.example.photogallery.object.GalleryItem;
 
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 public class FlickrFetcher
 {
     public static final String TAG = "FlickrFetcher";
+
+    public static final String PREF_SEARCH_QUERY = "searchQuery";
 
     private static final String API_KEY = "96d49464b6ab05385f4b33e1d8ee82bd";
 

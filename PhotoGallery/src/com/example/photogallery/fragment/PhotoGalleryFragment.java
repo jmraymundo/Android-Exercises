@@ -9,18 +9,30 @@ import com.example.photogallery.utils.FlickrFetcher;
 import com.example.photogallery.utils.ThumbnailDownloader;
 import com.example.photogallery.utils.ThumbnailDownloader.Listener;
 
+import android.app.Activity;
+import android.app.SearchManager;
+import android.app.SearchableInfo;
+import android.content.ComponentName;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.SearchView;
+import android.widget.Toast;
 
 public class PhotoGalleryFragment extends Fragment
 {
@@ -37,7 +49,8 @@ public class PhotoGalleryFragment extends Fragment
     {
         super.onCreate( savedInstanceState );
         setRetainInstance( true );
-        new FetchItemsTask().execute();
+        setHasOptionsMenu( true );
+        updateItems();
 
         mThumbnailThread = new ThumbnailDownloader< ImageView >( new Handler() );
         mThumbnailThread.setListener( new Listener< ImageView >()
@@ -56,6 +69,11 @@ public class PhotoGalleryFragment extends Fragment
         Log.i( TAG, "Background thread started." );
     }
 
+    public void updateItems()
+    {
+        new FetchItemsTask().execute();
+    }
+
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
     {
@@ -71,6 +89,40 @@ public class PhotoGalleryFragment extends Fragment
         super.onDestroy();
         mThumbnailThread.quit();
         Log.i( TAG, "Background thread destroyed." );
+    }
+
+    @Override
+    public void onCreateOptionsMenu( Menu menu, MenuInflater inflater )
+    {
+        super.onCreateOptionsMenu( menu, inflater );
+        inflater.inflate( R.menu.fragment_photo_gallery, menu );
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
+        {
+            MenuItem searchItem = menu.findItem( R.id.menu_item_search );
+            SearchView searchView = ( SearchView ) searchItem.getActionView();
+            SearchManager searchManager = ( SearchManager ) getActivity().getSystemService( Context.SEARCH_SERVICE );
+            ComponentName name = getActivity().getComponentName();
+            SearchableInfo searchInfo = searchManager.getSearchableInfo( name );
+            searchView.setSearchableInfo( searchInfo );
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected( MenuItem item )
+    {
+        switch( item.getItemId() )
+        {
+            case R.id.menu_item_search:
+                getActivity().onSearchRequested();
+                return true;
+            case R.id.menu_item_clear:
+                PreferenceManager.getDefaultSharedPreferences( getActivity() ).edit()
+                        .putString( FlickrFetcher.PREF_SEARCH_QUERY, null ).commit();
+                updateItems();
+                return true;
+            default:
+                return super.onOptionsItemSelected( item );
+        }
     }
 
     @Override
@@ -101,7 +153,14 @@ public class PhotoGalleryFragment extends Fragment
         @Override
         protected ArrayList< GalleryItem > doInBackground( Void... params )
         {
-            String query = "android";
+            Activity activity = getActivity();
+            if( activity == null )
+            {
+                return new ArrayList< GalleryItem >();
+            }
+            String query = PreferenceManager.getDefaultSharedPreferences( activity )
+                    .getString( FlickrFetcher.PREF_SEARCH_QUERY, null );
+
             FlickrFetcher flickrFetcher = new FlickrFetcher();
             if( query == null )
             {
@@ -109,7 +168,7 @@ public class PhotoGalleryFragment extends Fragment
             }
             else
             {
-                return flickrFetcher.search( query );
+                return flickrFetcher.search( query.trim() );
             }
         }
 
@@ -117,6 +176,8 @@ public class PhotoGalleryFragment extends Fragment
         protected void onPostExecute( ArrayList< GalleryItem > result )
         {
             mItems = result;
+            String query = PreferenceManager.getDefaultSharedPreferences( getActivity() )
+                    .getString( FlickrFetcher.PREF_SEARCH_QUERY, null );
             setupAdapter();
         }
     }

@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,21 +26,9 @@ public class RunFragment extends Fragment
 
     private TextView mDurationTextView;
 
-    private TextView mLatitudeTextView;
-
-    private TextView mLongitudeTextView;
-
-    private Button mStartButton;
-
-    private TextView mStartedTextView;
-
-    private Button mStopButton;
-
-    private RunManager mRunManager;
-
     private Location mLastLocation;
 
-    private Run mRun;
+    private TextView mLatitudeTextView;
 
     private BroadcastReceiver mLocationReceiver = new LocationReceiver()
     {
@@ -62,6 +49,18 @@ public class RunFragment extends Fragment
             Toast.makeText( getActivity(), toastText, Toast.LENGTH_LONG ).show();
         }
     };
+
+    private TextView mLongitudeTextView;
+
+    private Run mRun;
+
+    private RunManager mRunManager;
+
+    private Button mStartButton;
+
+    private TextView mStartedTextView;
+
+    private Button mStopButton;
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -86,6 +85,20 @@ public class RunFragment extends Fragment
         mStopButton = ( Button ) v.findViewById( R.id.run_stopButton );
         mStopButton.setOnClickListener( new StopOnClickListener() );
         return v;
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
+    }
+
+    @Override
+    public void onStop()
+    {
+        getActivity().unregisterReceiver( mLocationReceiver );
+        super.onStop();
     }
 
     public void updateUI()
@@ -115,8 +128,7 @@ public class RunFragment extends Fragment
         @Override
         public void onClick( View v )
         {
-            mRunManager.startLocationUpdates();
-            mRun = new Run();
+            mRunManager.startNewRun();
             updateUI();
         }
     }
@@ -126,22 +138,8 @@ public class RunFragment extends Fragment
         @Override
         public void onClick( View v )
         {
-            mRunManager.stopLocationUpdates();
+            mRunManager.stopRun();
             updateUI();
         }
-    }
-
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-        getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
-    }
-
-    @Override
-    public void onStop()
-    {
-        getActivity().unregisterReceiver( mLocationReceiver );
-        super.onStop();
     }
 }

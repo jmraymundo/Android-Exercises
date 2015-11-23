@@ -4,6 +4,7 @@ package com.example.photogallery.fragment;
 import java.util.ArrayList;
 
 import com.example.photogallery.R;
+import com.example.photogallery.activity.PhotoPageActivity;
 import com.example.photogallery.object.GalleryItem;
 import com.example.photogallery.services.PollService;
 import com.example.photogallery.utils.FlickrFetcher;
@@ -17,12 +18,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +31,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -92,6 +95,7 @@ public class PhotoGalleryFragment extends VisibleFragment
         View v = inflater.inflate( R.layout.fragment_photo_gallery, container, false );
         mGridView = ( GridView ) v.findViewById( R.id.gridView );
         setupAdapter();
+        mGridView.setOnItemClickListener( new PhotoPageListener() );
         return v;
     }
 
@@ -239,6 +243,20 @@ public class PhotoGalleryFragment extends VisibleFragment
         {
             mThumbnailThread.preLoad( mItems, params[0] );
             return null;
+        }
+    }
+
+    private class PhotoPageListener implements OnItemClickListener
+    {
+        @Override
+        public void onItemClick( AdapterView< ? > parent, View view, int position, long id )
+        {
+            GalleryItem item = mItems.get( position );
+            Uri photoPagUri = Uri.parse( item.getPhotoPageUrl() );
+            Intent i = new Intent( getActivity(), PhotoPageActivity.class );
+            i.setData( photoPagUri );
+
+            startActivity( i );
         }
     }
 }

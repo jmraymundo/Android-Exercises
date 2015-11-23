@@ -14,7 +14,7 @@ import android.widget.Toast;
 
 public class VisibleFragment extends Fragment
 {
-    protected static final String TAG = "VisibleFragment";
+    private static final String TAG = "VisibleFragment";
 
     private BroadcastReceiver mOnShowNotification = new BroadcastReceiver()
     {

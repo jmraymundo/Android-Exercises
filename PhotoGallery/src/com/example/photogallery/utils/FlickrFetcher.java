@@ -20,6 +20,12 @@ import android.util.Log;
 
 public class FlickrFetcher
 {
+    private static final String ATTRIBUTE_OWNER = "owner";
+
+    private static final String ATTRIBUTE_TITLE = "title";
+
+    private static final String ATTRIBUTE_ID = "id";
+
     public static final String PREF_LAST_RESULT_ID = "lastResultId";
 
     public static final String PREF_SEARCH_QUERY = "searchQuery";
@@ -98,11 +104,12 @@ public class FlickrFetcher
         {
             if( eventType == XmlPullParser.START_TAG && XML_PHOTO.equals( parser.getName() ) )
             {
-                String id = parser.getAttributeValue( null, "id" );
-                String caption = parser.getAttributeValue( null, "title" );
+                String id = parser.getAttributeValue( null, ATTRIBUTE_ID );
+                String caption = parser.getAttributeValue( null, ATTRIBUTE_TITLE );
                 String smallUrl = parser.getAttributeValue( null, EXTRA_SMALL_URL );
+                String owner = parser.getAttributeValue( null, ATTRIBUTE_OWNER );
 
-                GalleryItem item = new GalleryItem( id, caption, smallUrl );
+                GalleryItem item = new GalleryItem( id, caption, smallUrl, owner );
                 items.add( item );
             }
             eventType = parser.next();

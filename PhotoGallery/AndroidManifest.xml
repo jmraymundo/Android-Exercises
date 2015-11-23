@@ -33,6 +33,10 @@
 				android:name="android.app.searchable"
 				android:resource="@xml/searchable" />
 		</activity>
+		<activity
+			android:name=".activity.PhotoPageActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize" >
+		</activity>
 		<service android:name=".services.PollService" />
 		<receiver android:name=".utils.StartupReceiver" >
 			<intent-filter>

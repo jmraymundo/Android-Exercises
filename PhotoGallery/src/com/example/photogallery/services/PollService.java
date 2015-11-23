@@ -8,6 +8,7 @@ import com.example.photogallery.activity.PhotoGalleryActivity;
 import com.example.photogallery.object.GalleryItem;
 import com.example.photogallery.utils.FlickrFetcher;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -24,13 +25,59 @@ import android.util.Log;
 
 public class PollService extends IntentService
 {
-    private static final String TAG = "PollService";
+    public static final String ACTION_SHOW_NOTIFICATION = "com.example.photogallery.services.SHOW_NOTIFICATION";
 
-    private static final int POLL_INTERVAL = 1000 * 60 * 5;
+    public static final String EXTRA_NOTIFICATION = "NOTIFICATION";
+
+    public static final String EXTRA_REQUEST_CODE = "REQUEST_CODE";
+
+    public static final String PERMISSION_PRIVATE = "com.example.photogallery.PRIVATE";
+
+    public static final String PREF_IS_ALARM_ON = "isAlarmOn";
+
+    private static final int POLL_INTERVAL = 1000 * 5;
+
+    private static final String TAG = "PollService";
 
     public PollService()
     {
         super( TAG );
+    }
+
+    public static boolean isServiceAlarmOn( Context context )
+    {
+        Intent i = new Intent( context, PollService.class );
+        PendingIntent pi = PendingIntent.getService( context, 0, i, PendingIntent.FLAG_NO_CREATE );
+        return pi != null;
+    }
+
+    public static void setAlarmService( Context context, boolean isOn )
+    {
+        Log.i( TAG, "Setting service! Setting to " + isOn );
+        Intent i = new Intent( context, PollService.class );
+        PendingIntent pi = PendingIntent.getService( context, 0, i, 0 );
+        AlarmManager alarmManager = ( AlarmManager ) context.getSystemService( Context.ALARM_SERVICE );
+        if( isOn )
+        {
+            alarmManager.setRepeating( AlarmManager.RTC, System.currentTimeMillis(), POLL_INTERVAL, pi );
+        }
+        else
+        {
+            alarmManager.cancel( pi );
+            pi.cancel();
+        }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences( context );
+        prefs.edit().putBoolean( PREF_IS_ALARM_ON, isOn ).commit();
+    }
+
+    public void showBackgroundNotification( int requestCode, Notification notif )
+    {
+        Intent i = new Intent( ACTION_SHOW_NOTIFICATION );
+        i.putExtra( EXTRA_REQUEST_CODE, requestCode );
+        i.putExtra( EXTRA_NOTIFICATION, notif );
+
+        sendOrderedBroadcast( i, PERMISSION_PRIVATE, null, null, Activity.RESULT_OK, null, null );
     }
 
     @Override
@@ -42,9 +89,10 @@ public class PollService extends IntentService
 
         if( !isNetworkAvailable )
         {
+            Log.i( TAG, "Early termination in onHandleIntent" );
             return;
-        }
 
+        }
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences( this );
         String query = prefs.getString( FlickrFetcher.PREF_SEARCH_QUERY, null );
         String lastResultId = prefs.getString( FlickrFetcher.PREF_LAST_RESULT_ID, null );
@@ -75,9 +123,7 @@ public class PollService extends IntentService
                     .setContentText( r.getString( R.string.new_pictures_text ) ).setContentIntent( pi )
                     .setAutoCancel( true ).build();
 
-            NotificationManager notificationManager = ( NotificationManager ) getSystemService(
-                    Context.NOTIFICATION_SERVICE );
-            notificationManager.notify( 0, notification );
+            showBackgroundNotification( 0, notification );
         }
         else
         {
@@ -85,28 +131,5 @@ public class PollService extends IntentService
         }
 
         prefs.edit().putString( FlickrFetcher.PREF_LAST_RESULT_ID, resultId ).commit();
-    }
-
-    public static void setAlarmService( Context context, boolean isOn )
-    {
-        Intent i = new Intent( context, PollService.class );
-        PendingIntent pi = PendingIntent.getService( context, 0, i, 0 );
-        AlarmManager alarmManager = ( AlarmManager ) context.getSystemService( Context.ALARM_SERVICE );
-        if( isOn )
-        {
-            alarmManager.setRepeating( AlarmManager.RTC, System.currentTimeMillis(), POLL_INTERVAL, pi );
-        }
-        else
-        {
-            alarmManager.cancel( pi );
-            pi.cancel();
-        }
-    }
-
-    public static boolean isServiceAlarmOn( Context context )
-    {
-        Intent i = new Intent( context, PollService.class );
-        PendingIntent pi = PendingIntent.getService( context, 0, i, PendingIntent.FLAG_NO_CREATE );
-        return pi != null;
     }
 }

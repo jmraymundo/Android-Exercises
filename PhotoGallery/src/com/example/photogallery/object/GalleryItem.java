@@ -7,6 +7,8 @@ public class GalleryItem
 
     private String mId;
 
+    private String mOwner;
+
     private String mUrl;
 
     public GalleryItem( String id, String caption, String smallUrl )
@@ -26,6 +28,11 @@ public class GalleryItem
         return mId;
     }
 
+    public String getOwner()
+    {
+        return mOwner;
+    }
+
     public String getUrl()
     {
         return mUrl;
@@ -39,6 +46,11 @@ public class GalleryItem
     public void setId( String id )
     {
         mId = id;
+    }
+
+    public void setOwner( String owner )
+    {
+        mOwner = owner;
     }
 
     public void setUrl( String url )

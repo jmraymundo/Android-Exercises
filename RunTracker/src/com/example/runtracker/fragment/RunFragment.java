@@ -3,14 +3,23 @@ package com.example.runtracker.fragment;
 
 import com.example.runtracker.R;
 import com.example.runtracker.manager.RunManager;
+import com.example.runtracker.object.Run;
+import com.example.runtracker.receiver.LocationReceiver;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class RunFragment extends Fragment
 {
@@ -29,6 +38,30 @@ public class RunFragment extends Fragment
     private Button mStopButton;
 
     private RunManager mRunManager;
+
+    private Location mLastLocation;
+
+    private Run mRun;
+
+    private BroadcastReceiver mLocationReceiver = new LocationReceiver()
+    {
+        @Override
+        protected void onLocationReceived( Context context, Location loc )
+        {
+            mLastLocation = loc;
+            if( isVisible() )
+            {
+                updateUI();
+            }
+        }
+
+        @Override
+        protected void onProviderEnabledChanged( boolean enabled )
+        {
+            int toastText = enabled ? R.string.gps_enabled : R.string.gps_disabled;
+            Toast.makeText( getActivity(), toastText, Toast.LENGTH_LONG ).show();
+        }
+    };
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -49,7 +82,66 @@ public class RunFragment extends Fragment
         mDurationTextView = ( TextView ) v.findViewById( R.id.run_durationTextView );
 
         mStartButton = ( Button ) v.findViewById( R.id.run_startButton );
+        mStartButton.setOnClickListener( new StartOnClickListener() );
         mStopButton = ( Button ) v.findViewById( R.id.run_stopButton );
+        mStopButton.setOnClickListener( new StopOnClickListener() );
         return v;
+    }
+
+    public void updateUI()
+    {
+        boolean started = mRunManager.isTrackingRun();
+
+        if( mRun != null )
+        {
+            mStartedTextView.setText( mRun.getStartDate().toString() );
+        }
+
+        int durationSeconds = 0;
+        if( mRun != null && mLastLocation != null )
+        {
+            durationSeconds = mRun.getDurationSeconds( mLastLocation.getTime() );
+            mLatitudeTextView.setText( Double.toString( mLastLocation.getLatitude() ) );
+            mLongitudeTextView.setText( Double.toString( mLastLocation.getLongitude() ) );
+            mAltitudeTextView.setText( Double.toString( mLastLocation.getAltitude() ) );
+        }
+        mDurationTextView.setText( Run.formatDuration( durationSeconds ) );
+        mStartButton.setEnabled( !started );
+        mStopButton.setEnabled( started );
+    }
+
+    private class StartOnClickListener implements OnClickListener
+    {
+        @Override
+        public void onClick( View v )
+        {
+            mRunManager.startLocationUpdates();
+            mRun = new Run();
+            updateUI();
+        }
+    }
+
+    private class StopOnClickListener implements OnClickListener
+    {
+        @Override
+        public void onClick( View v )
+        {
+            mRunManager.stopLocationUpdates();
+            updateUI();
+        }
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
+    }
+
+    @Override
+    public void onStop()
+    {
+        getActivity().unregisterReceiver( mLocationReceiver );
+        super.onStop();
     }
 }

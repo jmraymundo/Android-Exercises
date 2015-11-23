@@ -2,13 +2,15 @@
 package com.example.runtracker.manager;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.location.LocationManager;
 
 public class RunManager
 {
-    private static final String ACTION_LOCATION = "com.example.runtracker.manager.ACTION_LOCATION";
+    public static final String ACTION_LOCATION = "com.example.runtracker.manager.ACTION_LOCATION";
 
     private static RunManager sRunManager;
 
@@ -41,8 +43,22 @@ public class RunManager
     public void startLocationUpdates()
     {
         String provider = LocationManager.GPS_PROVIDER;
+
+        Location lastKnownLocation = mLocationManager.getLastKnownLocation( provider );
+        if( lastKnownLocation != null )
+        {
+            lastKnownLocation.setTime( System.currentTimeMillis() );
+            broadcastLocation( lastKnownLocation );
+        }
         PendingIntent pi = getLocationPendingIntent( true );
         mLocationManager.requestLocationUpdates( provider, 0, 0, pi );
+    }
+
+    private void broadcastLocation( Location location )
+    {
+        Intent broadcast = new Intent( ACTION_LOCATION );
+        broadcast.putExtra( LocationManager.KEY_LOCATION_CHANGED, location );
+        mAppContext.sendBroadcast( broadcast );
     }
 
     public void stopLocationUpdates()

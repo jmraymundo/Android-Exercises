@@ -2,6 +2,7 @@
 package com.example.draganddraw.fragment;
 
 import com.example.draganddraw.R;
+import com.example.draganddraw.view.BoxDrawingView;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

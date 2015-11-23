@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.example.draganddraw.object.Box;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -15,18 +16,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+@SuppressLint( "ClickableViewAccessibility" )
 public class BoxDrawingView extends View
 {
-    private static final String KEY_INSTANCE_STATE = "instanceState";
-
-    private static final String KEY_CURRENT_Y = "currentY";
-
-    private static final String KEY_CURRENT_X = "currentX";
-
-    private static final String KEY_ORIGIN_Y = "originY";
-
-    private static final String KEY_ORIGIN_X = "originX";
-
     private static final String TAG = "BoxDrawingView";
 
     private Box mCurrentBox;

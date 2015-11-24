@@ -14,19 +14,6 @@ public abstract class SQLLiteCursorLoader extends AsyncTaskLoader< Cursor >
         super( context );
     }
 
-    protected abstract Cursor loadCursor();
-
-    @Override
-    public Cursor loadInBackground()
-    {
-        Cursor cursor = loadCursor();
-        if( cursor != null )
-        {
-            cursor.getCount();
-        }
-        return cursor;
-    }
-
     @Override
     public void deliverResult( Cursor data )
     {
@@ -40,6 +27,40 @@ public abstract class SQLLiteCursorLoader extends AsyncTaskLoader< Cursor >
         {
             oldCursor.close();
         }
+    }
+
+    @Override
+    public Cursor loadInBackground()
+    {
+        Cursor cursor = loadCursor();
+        if( cursor != null )
+        {
+            cursor.getCount();
+        }
+        return cursor;
+    }
+
+    @Override
+    public void onCanceled( Cursor data )
+    {
+        if( data != null && !data.isClosed() )
+        {
+            data.close();
+        }
+    }
+
+    protected abstract Cursor loadCursor();
+
+    @Override
+    protected void onReset()
+    {
+        super.onReset();
+        onStopLoading();
+        if( mCursor != null && !mCursor.isClosed() )
+        {
+            mCursor.close();
+        }
+        mCursor = null;
     }
 
     @Override
@@ -59,26 +80,5 @@ public abstract class SQLLiteCursorLoader extends AsyncTaskLoader< Cursor >
     protected void onStopLoading()
     {
         cancelLoad();
-    }
-
-    @Override
-    public void onCanceled( Cursor data )
-    {
-        if( data != null && !data.isClosed() )
-        {
-            data.close();
-        }
-    }
-
-    @Override
-    protected void onReset()
-    {
-        super.onReset();
-        onStopLoading();
-        if( mCursor != null && !mCursor.isClosed() )
-        {
-            mCursor.close();
-        }
-        mCursor = null;
     }
 }

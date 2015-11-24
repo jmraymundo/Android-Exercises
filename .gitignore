@@ -44,3 +44,4 @@ Thumbs.db
 TestProvider/
 *.classpath
 *.properties
+RemoteSystemsTempFiles/

@@ -2,7 +2,6 @@
 package com.example.runtracker.loader;
 
 import com.example.runtracker.manager.RunManager;
-import com.example.runtracker.object.Run;
 
 import android.content.Context;
 import android.location.Location;

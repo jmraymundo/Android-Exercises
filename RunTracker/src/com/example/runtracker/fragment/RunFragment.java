@@ -38,6 +38,16 @@ public class RunFragment extends Fragment
 
     private static final String TAG = "RunFragment";
 
+    public static RunFragment newInstance( long runId )
+    {
+        Log.i( TAG, "Run " + runId + " selected!" );
+        Bundle args = new Bundle();
+        args.putLong( ARGS_RUN_ID, runId );
+        RunFragment rf = new RunFragment();
+        rf.setArguments( args );
+        return rf;
+    }
+
     private TextView mAltitudeTextView;
 
     private TextView mDurationTextView;
@@ -85,16 +95,6 @@ public class RunFragment extends Fragment
     private TextView mStartedTextView;
 
     private Button mStopButton;
-
-    public static RunFragment newInstance( long runId )
-    {
-        Log.i( TAG, "Run " + runId + " selected!" );
-        Bundle args = new Bundle();
-        args.putLong( ARGS_RUN_ID, runId );
-        RunFragment rf = new RunFragment();
-        rf.setArguments( args );
-        return rf;
-    }
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -201,6 +201,17 @@ public class RunFragment extends Fragment
         }
     }
 
+    private class MapOnClickListener implements OnClickListener
+    {
+        @Override
+        public void onClick( View v )
+        {
+            Intent i = new Intent( getActivity(), RunMapActivity.class );
+            i.putExtra( RunMapActivity.EXTRA_RUN_ID, mRun.getId() );
+            startActivity( i );
+        }
+    }
+
     private class RunLoaderOnCallbacks implements LoaderCallbacks< Run >
     {
         @Override
@@ -248,17 +259,6 @@ public class RunFragment extends Fragment
         {
             mRunManager.stopRun();
             updateUI();
-        }
-    }
-
-    private class MapOnClickListener implements OnClickListener
-    {
-        @Override
-        public void onClick( View v )
-        {
-            Intent i = new Intent( getActivity(), RunMapActivity.class );
-            i.putExtra( RunMapActivity.EXTRA_RUN_ID, mRun.getId() );
-            startActivity( i );
         }
     }
 }

@@ -14,6 +14,16 @@ public abstract class DataLoader< D > extends AsyncTaskLoader< D >
     }
 
     @Override
+    public void deliverResult( D data )
+    {
+        mData = data;
+        if( isStarted() )
+        {
+            super.deliverResult( data );
+        }
+    }
+
+    @Override
     protected void onStartLoading()
     {
         if( mData != null )
@@ -23,16 +33,6 @@ public abstract class DataLoader< D > extends AsyncTaskLoader< D >
         else
         {
             forceLoad();
-        }
-    }
-
-    @Override
-    public void deliverResult( D data )
-    {
-        mData = data;
-        if( isStarted() )
-        {
-            super.deliverResult( data );
         }
     }
 }

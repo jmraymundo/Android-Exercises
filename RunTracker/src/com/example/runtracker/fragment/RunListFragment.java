@@ -5,19 +5,16 @@ import com.example.runtracker.R;
 import com.example.runtracker.activity.RunActivity;
 import com.example.runtracker.database.RunDatabaseHelper.RunCursor;
 import com.example.runtracker.loader.RunListCursorLoader;
-import com.example.runtracker.manager.RunManager;
 import com.example.runtracker.object.Run;
 
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -55,6 +52,12 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
     }
 
     @Override
+    public Loader< Cursor > onCreateLoader( int id, Bundle args )
+    {
+        return new RunListCursorLoader( getActivity() );
+    }
+
+    @Override
     public void onCreateOptionsMenu( Menu menu, MenuInflater inflater )
     {
         super.onCreateOptionsMenu( menu, inflater );
@@ -67,6 +70,19 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         Intent i = new Intent( getActivity(), RunActivity.class );
         i.putExtra( RunActivity.EXTRA_RUN_ID, id );
         startActivity( i );
+    }
+
+    @Override
+    public void onLoaderReset( Loader< Cursor > loader )
+    {
+        setListAdapter( null );
+    }
+
+    @Override
+    public void onLoadFinished( Loader< Cursor > loader, Cursor cursor )
+    {
+        RunCursorAdapter adapter = new RunCursorAdapter( getActivity(), ( RunCursor ) cursor );
+        setListAdapter( adapter );
     }
 
     @Override
@@ -109,24 +125,5 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
             return inflater.inflate( android.R.layout.simple_list_item_1, parent, false );
         }
 
-    }
-
-    @Override
-    public Loader< Cursor > onCreateLoader( int id, Bundle args )
-    {
-        return new RunListCursorLoader( getActivity() );
-    }
-
-    @Override
-    public void onLoadFinished( Loader< Cursor > loader, Cursor cursor )
-    {
-        RunCursorAdapter adapter = new RunCursorAdapter( getActivity(), ( RunCursor ) cursor );
-        setListAdapter( adapter );
-    }
-
-    @Override
-    public void onLoaderReset( Loader< Cursor > loader )
-    {
-        setListAdapter( null );
     }
 }

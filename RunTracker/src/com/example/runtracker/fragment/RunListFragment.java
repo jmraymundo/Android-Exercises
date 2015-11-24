@@ -4,14 +4,18 @@ package com.example.runtracker.fragment;
 import com.example.runtracker.R;
 import com.example.runtracker.activity.RunActivity;
 import com.example.runtracker.database.RunDatabaseHelper.RunCursor;
+import com.example.runtracker.loader.RunListCursorLoader;
 import com.example.runtracker.manager.RunManager;
 import com.example.runtracker.object.Run;
 
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,14 +27,11 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class RunListFragment extends ListFragment
+public class RunListFragment extends ListFragment implements LoaderCallbacks< Cursor >
 {
-
     public static final int REQUEST_NEW_RUN = 0;
 
     private static final String TAG = "RunListFragment";
-
-    private RunCursor mCursor;
 
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
@@ -38,8 +39,7 @@ public class RunListFragment extends ListFragment
         switch( requestCode )
         {
             case REQUEST_NEW_RUN:
-                mCursor.requery();
-                ( ( RunCursorAdapter ) getListAdapter() ).notifyDataSetChanged();
+                getLoaderManager().restartLoader( 0, null, this );
                 break;
             default:
                 super.onActivityResult( requestCode, resultCode, data );
@@ -51,16 +51,7 @@ public class RunListFragment extends ListFragment
     {
         super.onCreate( savedInstanceState );
         setHasOptionsMenu( true );
-        mCursor = RunManager.get( getActivity() ).queryRuns();
-        try
-        {
-            RunCursorAdapter adapter = new RunCursorAdapter( getActivity(), mCursor );
-            setListAdapter( adapter );
-        }
-        catch( IllegalArgumentException e )
-        {
-            Log.e( TAG, "Exception caught! " + e );
-        }
+        getLoaderManager().initLoader( 0, null, this );
     }
 
     @Override
@@ -68,13 +59,6 @@ public class RunListFragment extends ListFragment
     {
         super.onCreateOptionsMenu( menu, inflater );
         inflater.inflate( R.menu.run_list_options, menu );
-    }
-
-    @Override
-    public void onDestroy()
-    {
-        mCursor.close();
-        super.onDestroy();
     }
 
     @Override
@@ -101,7 +85,6 @@ public class RunListFragment extends ListFragment
 
     public class RunCursorAdapter extends CursorAdapter
     {
-
         private RunCursor mRunCursor;
 
         public RunCursorAdapter( Context context, RunCursor cursor )
@@ -126,5 +109,24 @@ public class RunListFragment extends ListFragment
             return inflater.inflate( android.R.layout.simple_list_item_1, parent, false );
         }
 
+    }
+
+    @Override
+    public Loader< Cursor > onCreateLoader( int id, Bundle args )
+    {
+        return new RunListCursorLoader( getActivity() );
+    }
+
+    @Override
+    public void onLoadFinished( Loader< Cursor > loader, Cursor cursor )
+    {
+        RunCursorAdapter adapter = new RunCursorAdapter( getActivity(), ( RunCursor ) cursor );
+        setListAdapter( adapter );
+    }
+
+    @Override
+    public void onLoaderReset( Loader< Cursor > loader )
+    {
+        setListAdapter( null );
     }
 }

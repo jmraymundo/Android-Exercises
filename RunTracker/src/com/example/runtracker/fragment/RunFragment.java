@@ -2,6 +2,7 @@
 package com.example.runtracker.fragment;
 
 import com.example.runtracker.R;
+import com.example.runtracker.activity.RunMapActivity;
 import com.example.runtracker.loader.LocationLoader;
 import com.example.runtracker.loader.RunLoader;
 import com.example.runtracker.manager.RunManager;
@@ -12,7 +13,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -32,15 +32,17 @@ public class RunFragment extends Fragment
 {
     private static final String ARGS_RUN_ID = "run_id";
 
-    private static final String TAG = "RunFragment";
+    private static final int LOAD_LOCATION = 1;
 
     private static final int LOAD_RUN = 0;
 
-    private static final int LOAD_LOCATION = 1;
+    private static final String TAG = "RunFragment";
 
     private TextView mAltitudeTextView;
 
     private TextView mDurationTextView;
+
+    private boolean mIsStarted;
 
     private Location mLastLocation;
 
@@ -72,6 +74,8 @@ public class RunFragment extends Fragment
 
     private TextView mLongitudeTextView;
 
+    private Button mMapButton;
+
     private Run mRun;
 
     private RunManager mRunManager;
@@ -81,8 +85,6 @@ public class RunFragment extends Fragment
     private TextView mStartedTextView;
 
     private Button mStopButton;
-
-    private boolean mIsStarted;
 
     public static RunFragment newInstance( long runId )
     {
@@ -129,6 +131,8 @@ public class RunFragment extends Fragment
         mStartButton.setOnClickListener( new StartOnClickListener() );
         mStopButton = ( Button ) view.findViewById( R.id.run_stopButton );
         mStopButton.setOnClickListener( new StopOnClickListener() );
+        mMapButton = ( Button ) view.findViewById( R.id.run_mapButton );
+        mMapButton.setOnClickListener( new MapOnClickListener() );
         updateUI();
         return view;
     }
@@ -164,10 +168,60 @@ public class RunFragment extends Fragment
             mLatitudeTextView.setText( Double.toString( mLastLocation.getLatitude() ) );
             mLongitudeTextView.setText( Double.toString( mLastLocation.getLongitude() ) );
             mAltitudeTextView.setText( Double.toString( mLastLocation.getAltitude() ) );
+            mMapButton.setEnabled( true );
+        }
+        else
+        {
+            mMapButton.setEnabled( false );
         }
         mDurationTextView.setText( Run.formatDuration( durationSeconds ) );
         mStartButton.setEnabled( !mIsStarted );
         mStopButton.setEnabled( mIsStarted && trackingThisRun );
+    }
+
+    private class LocationLoaderOnCallbacks implements LoaderCallbacks< Location >
+    {
+        @Override
+        public Loader< Location > onCreateLoader( int id, Bundle args )
+        {
+            return new LocationLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
+        }
+
+        @Override
+        public void onLoaderReset( Loader< Location > loader )
+        {
+
+        }
+
+        @Override
+        public void onLoadFinished( Loader< Location > loader, Location location )
+        {
+            mLastLocation = location;
+            updateUI();
+        }
+    }
+
+    private class RunLoaderOnCallbacks implements LoaderCallbacks< Run >
+    {
+        @Override
+        public Loader< Run > onCreateLoader( int id, Bundle args )
+        {
+            return new RunLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
+        }
+
+        @Override
+        public void onLoaderReset( Loader< Run > loader )
+        {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onLoadFinished( Loader< Run > loader, Run run )
+        {
+            mRun = run;
+            updateUI();
+        }
     }
 
     private class StartOnClickListener implements OnClickListener
@@ -197,48 +251,14 @@ public class RunFragment extends Fragment
         }
     }
 
-    private class RunLoaderOnCallbacks implements LoaderCallbacks< Run >
+    private class MapOnClickListener implements OnClickListener
     {
         @Override
-        public Loader< Run > onCreateLoader( int id, Bundle args )
+        public void onClick( View v )
         {
-            return new RunLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
-        }
-
-        @Override
-        public void onLoadFinished( Loader< Run > loader, Run run )
-        {
-            mRun = run;
-            updateUI();
-        }
-
-        @Override
-        public void onLoaderReset( Loader< Run > loader )
-        {
-            // TODO Auto-generated method stub
-
-        }
-    }
-
-    private class LocationLoaderOnCallbacks implements LoaderCallbacks< Location >
-    {
-        @Override
-        public Loader< Location > onCreateLoader( int id, Bundle args )
-        {
-            return new LocationLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
-        }
-
-        @Override
-        public void onLoadFinished( Loader< Location > loader, Location location )
-        {
-            mLastLocation = location;
-            updateUI();
-        }
-
-        @Override
-        public void onLoaderReset( Loader< Location > loader )
-        {
-
+            Intent i = new Intent( getActivity(), RunMapActivity.class );
+            i.putExtra( RunMapActivity.EXTRA_RUN_ID, mRun.getId() );
+            startActivity( i );
         }
     }
 }

@@ -187,4 +187,9 @@ public class RunManager
         run.setId( mHelper.insertRun( run ) );
         return run;
     }
+
+    public LocationCursor queryLocationsForRun( long id )
+    {
+        return mHelper.queryLocationsForRun( id );
+    }
 }

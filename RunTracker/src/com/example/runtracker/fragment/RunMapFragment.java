@@ -1,6 +1,9 @@
 
 package com.example.runtracker.fragment;
 
+import java.util.Date;
+
+import com.example.runtracker.R;
 import com.example.runtracker.database.RunDatabaseHelper.LocationCursor;
 import com.example.runtracker.loader.LocationListCursorLoader;
 import com.google.android.gms.maps.CameraUpdate;
@@ -10,9 +13,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.LatLngBounds.Builder;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.annotation.SuppressLint;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Location;
@@ -108,6 +113,23 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
         {
             Location loc = mLocationCursor.getLocation();
             LatLng latLng = new LatLng( loc.getLatitude(), loc.getLongitude() );
+
+            Resources r = getResources();
+            if( mLocationCursor.isFirst() )
+            {
+                String startDate = new Date( loc.getTime() ).toString();
+                MarkerOptions startMarkerOptions = new MarkerOptions().position( latLng )
+                        .title( r.getString( R.string.run_started_at_format, startDate ) );
+                mGoogleMap.addMarker( startMarkerOptions );
+            }
+            else if( mLocationCursor.isLast() )
+            {
+                String endDate = new Date( loc.getTime() ).toString();
+                MarkerOptions finishMarkerOptions = new MarkerOptions().position( latLng )
+                        .title( r.getString( R.string.run_finished_at_format, endDate ) );
+                mGoogleMap.addMarker( finishMarkerOptions );
+            }
+
             line.add( latLng );
             latLngBuilder.include( latLng );
             mLocationCursor.moveToNext();

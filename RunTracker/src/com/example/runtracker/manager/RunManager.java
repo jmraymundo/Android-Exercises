@@ -28,18 +28,6 @@ public class RunManager
 
     private static final String TEST_PROVIDER = "TEST_PROVIDER";
 
-    public static RunManager get( Context context )
-    {
-        Log.d( TAG, "inside get(Context context) method" );
-        if( sRunManager == null )
-        {
-            Log.d( TAG, "sRunManager is null! Creating new instance" );
-            sRunManager = new RunManager( context.getApplicationContext() );
-        }
-        Log.d( TAG, "Is sRunManager null? " + ( sRunManager == null ) );
-        return sRunManager;
-    }
-
     private Context mAppContext;
 
     private long mCurrentRunId;
@@ -57,6 +45,18 @@ public class RunManager
         mHelper = new RunDatabaseHelper( mAppContext );
         mPrefs = mAppContext.getSharedPreferences( PREFS_FILE, Context.MODE_PRIVATE );
         mCurrentRunId = mPrefs.getLong( PREF_CURRENT_RUN_ID, -1 );
+    }
+
+    public static RunManager get( Context context )
+    {
+        Log.d( TAG, "inside get(Context context) method" );
+        if( sRunManager == null )
+        {
+            Log.d( TAG, "sRunManager is null! Creating new instance" );
+            sRunManager = new RunManager( context.getApplicationContext() );
+        }
+        Log.d( TAG, "Is sRunManager null? " + ( sRunManager == null ) );
+        return sRunManager;
     }
 
     public Location getLastLocationForRun( long runId )

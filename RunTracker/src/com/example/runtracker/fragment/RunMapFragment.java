@@ -6,6 +6,8 @@ import java.util.Date;
 import com.example.runtracker.R;
 import com.example.runtracker.database.RunDatabaseHelper.LocationCursor;
 import com.example.runtracker.loader.LocationListCursorLoader;
+import com.example.runtracker.manager.RunManager;
+import com.example.runtracker.receiver.LocationReceiver;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -13,10 +15,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.LatLngBounds.Builder;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Point;
@@ -29,6 +35,7 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 public class RunMapFragment extends SupportMapFragment implements LoaderCallbacks< Cursor >
 {
@@ -36,11 +43,30 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
 
     private static final int LOAD_LOCATIONS = 0;
 
+    private static final String TAG = "RunMapFragment";
+
     private GoogleMap mGoogleMap;
 
     private LocationCursor mLocationCursor;
 
-    private static final String TAG = "RunMapFragment";
+    private BroadcastReceiver mLocationReceiver = new LocationReceiver()
+    {
+        @Override
+        protected void onLocationReceived( Context context, Location loc )
+        {
+            restartLoader();
+            updateUI();
+        }
+
+        @Override
+        protected void onProviderEnabledChanged( boolean enabled )
+        {
+            int toastText = enabled ? R.string.gps_enabled : R.string.gps_disabled;
+            Toast.makeText( getActivity(), toastText, Toast.LENGTH_LONG ).show();
+        }
+    };
+
+    private Marker mPreviousLastMarker;
 
     public static RunMapFragment newInstance( long id )
     {
@@ -97,6 +123,26 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
         updateUI();
     }
 
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
+    }
+
+    @Override
+    public void onStop()
+    {
+        getActivity().unregisterReceiver( mLocationReceiver );
+        super.onStop();
+    }
+
+    private void restartLoader()
+    {
+        LoaderManager lm = getLoaderManager();
+        lm.restartLoader( LOAD_LOCATIONS, getArguments(), this );
+    }
+
     @SuppressLint( "NewApi" )
     private void updateUI()
     {
@@ -124,10 +170,14 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
             }
             else if( mLocationCursor.isLast() )
             {
+                if( mPreviousLastMarker != null )
+                {
+                    mPreviousLastMarker.remove();
+                }
                 String endDate = new Date( loc.getTime() ).toString();
                 MarkerOptions finishMarkerOptions = new MarkerOptions().position( latLng )
                         .title( r.getString( R.string.run_finished_at_format, endDate ) );
-                mGoogleMap.addMarker( finishMarkerOptions );
+                mPreviousLastMarker = mGoogleMap.addMarker( finishMarkerOptions );
             }
 
             line.add( latLng );

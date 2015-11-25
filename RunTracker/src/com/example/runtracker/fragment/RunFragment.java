@@ -30,6 +30,8 @@ import android.widget.Toast;
 
 public class RunFragment extends Fragment
 {
+    public static final int SHOW_MAP = 2;
+
     private static final String ARGS_RUN_ID = "run_id";
 
     private static final int LOAD_LOCATION = 1;
@@ -37,16 +39,6 @@ public class RunFragment extends Fragment
     private static final int LOAD_RUN = 0;
 
     private static final String TAG = "RunFragment";
-
-    public static RunFragment newInstance( long runId )
-    {
-        Log.i( TAG, "Run " + runId + " selected!" );
-        Bundle args = new Bundle();
-        args.putLong( ARGS_RUN_ID, runId );
-        RunFragment rf = new RunFragment();
-        rf.setArguments( args );
-        return rf;
-    }
 
     private TextView mAltitudeTextView;
 
@@ -81,7 +73,6 @@ public class RunFragment extends Fragment
             Toast.makeText( getActivity(), toastText, Toast.LENGTH_LONG ).show();
         }
     };
-
     private TextView mLongitudeTextView;
 
     private Button mMapButton;
@@ -95,6 +86,29 @@ public class RunFragment extends Fragment
     private TextView mStartedTextView;
 
     private Button mStopButton;
+
+    public static RunFragment newInstance( long runId )
+    {
+        Log.i( TAG, "Run " + runId + " selected!" );
+        Bundle args = new Bundle();
+        args.putLong( ARGS_RUN_ID, runId );
+        RunFragment rf = new RunFragment();
+        rf.setArguments( args );
+        return rf;
+    }
+
+    @Override
+    public void onActivityResult( int requestCode, int resultCode, Intent data )
+    {
+        switch( requestCode )
+        {
+            case SHOW_MAP:
+                updateUI();
+                break;
+            default:
+                super.onActivityResult( requestCode, resultCode, data );
+        }
+    }
 
     @Override
     public void onCreate( Bundle savedInstanceState )
@@ -208,7 +222,7 @@ public class RunFragment extends Fragment
         {
             Intent i = new Intent( getActivity(), RunMapActivity.class );
             i.putExtra( RunMapActivity.EXTRA_RUN_ID, mRun.getId() );
-            startActivity( i );
+            startActivityForResult( i, SHOW_MAP );
         }
     }
 
@@ -261,4 +275,5 @@ public class RunFragment extends Fragment
             updateUI();
         }
     }
+
 }

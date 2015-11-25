@@ -7,15 +7,6 @@ import android.annotation.SuppressLint;
 
 public class Run
 {
-    @SuppressLint( "DefaultLocale" )
-    public static String formatDuration( int durationSeconds )
-    {
-        int seconds = durationSeconds % 60;
-        int minutes = ( ( durationSeconds - seconds ) / 60 ) % 60;
-        int hours = ( durationSeconds - ( minutes * 60 ) - seconds ) / 3600;
-        return String.format( "%02d:%02d:%02d", hours, minutes, seconds );
-    }
-
     private long mId;
 
     private Date mStartDate;
@@ -24,6 +15,15 @@ public class Run
     {
         setId( -1 );
         setStartDate( new Date() );
+    }
+
+    @SuppressLint( "DefaultLocale" )
+    public static String formatDuration( int durationSeconds )
+    {
+        int seconds = durationSeconds % 60;
+        int minutes = ( ( durationSeconds - seconds ) / 60 ) % 60;
+        int hours = ( durationSeconds - ( minutes * 60 ) - seconds ) / 3600;
+        return String.format( "%02d:%02d:%02d", hours, minutes, seconds );
     }
 
     public int getDurationSeconds( long endMillis )

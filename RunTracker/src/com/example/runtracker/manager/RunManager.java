@@ -144,15 +144,10 @@ public class RunManager
     public Run startNewRun()
     {
         Run run = insertRun();
-        startTrackingRun( run );
-        return run;
-    }
-
-    public void startTrackingRun( Run run )
-    {
         mCurrentRunId = run.getId();
         mPrefs.edit().putLong( PREF_CURRENT_RUN_ID, mCurrentRunId ).commit();
         startLocationUpdates();
+        return run;
     }
 
     public void stopLocationUpdates()
@@ -191,5 +186,10 @@ public class RunManager
         Run run = new Run();
         run.setId( mHelper.insertRun( run ) );
         return run;
+    }
+
+    public boolean isLocatorAvailable()
+    {
+        return mLocationManager.isProviderEnabled( LocationManager.GPS_PROVIDER );
     }
 }

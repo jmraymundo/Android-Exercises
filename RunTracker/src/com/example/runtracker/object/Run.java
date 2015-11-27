@@ -4,12 +4,13 @@ package com.example.runtracker.object;
 import java.util.Date;
 
 import android.annotation.SuppressLint;
+import android.text.format.DateFormat;
 
 public class Run
 {
     private long mId;
 
-    private Date mStartDate;
+    private CustomDate mStartDate;
 
     public Run()
     {
@@ -48,6 +49,20 @@ public class Run
 
     public void setStartDate( Date startDate )
     {
-        mStartDate = startDate;
+        mStartDate = new CustomDate( startDate );
+    }
+
+    private class CustomDate extends Date
+    {
+        public CustomDate( Date startDate )
+        {
+            super( startDate.getTime() );
+        }
+
+        @Override
+        public String toString()
+        {
+            return DateFormat.format( "yyyy-MM-dd hh:mm:ss aa", this ).toString();
+        }
     }
 }

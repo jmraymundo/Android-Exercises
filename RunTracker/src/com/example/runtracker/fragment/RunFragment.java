@@ -71,8 +71,14 @@ public class RunFragment extends Fragment
         {
             int toastText = enabled ? R.string.gps_enabled : R.string.gps_disabled;
             Toast.makeText( getActivity(), toastText, Toast.LENGTH_LONG ).show();
+            updateUI();
+            if( !enabled )
+            {
+                getActivity().finish();
+            }
         }
     };
+
     private TextView mLongitudeTextView;
 
     private Button mMapButton;
@@ -81,11 +87,11 @@ public class RunFragment extends Fragment
 
     private RunManager mRunManager;
 
-    private Button mStartButton;
-
     private TextView mStartedTextView;
 
     private Button mStopButton;
+
+    public boolean mIsLocationReceiverRegistered;
 
     public static RunFragment newInstance( long runId )
     {
@@ -127,6 +133,10 @@ public class RunFragment extends Fragment
                 lm.initLoader( LOAD_LOCATION, args, new LocationLoaderOnCallbacks() );
             }
         }
+        else
+        {
+            mRun = mRunManager.startNewRun();
+        }
     }
 
     @Override
@@ -141,8 +151,6 @@ public class RunFragment extends Fragment
         mAltitudeTextView = ( TextView ) view.findViewById( R.id.run_altitudeTextView );
         mDurationTextView = ( TextView ) view.findViewById( R.id.run_durationTextView );
 
-        mStartButton = ( Button ) view.findViewById( R.id.run_startButton );
-        mStartButton.setOnClickListener( new StartOnClickListener() );
         mStopButton = ( Button ) view.findViewById( R.id.run_stopButton );
         mStopButton.setOnClickListener( new StopOnClickListener() );
         mMapButton = ( Button ) view.findViewById( R.id.run_mapButton );
@@ -156,12 +164,17 @@ public class RunFragment extends Fragment
     {
         super.onStart();
         getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
+        mIsLocationReceiverRegistered = true;
     }
 
     @Override
     public void onStop()
     {
-        getActivity().unregisterReceiver( mLocationReceiver );
+        mRunManager.stopRun();
+        if( mIsLocationReceiverRegistered )
+        {
+            getActivity().unregisterReceiver( mLocationReceiver );
+        }
         super.onStop();
     }
 
@@ -169,6 +182,7 @@ public class RunFragment extends Fragment
     {
         mIsStarted = mRunManager.isTrackingRun();
         boolean trackingThisRun = mRunManager.isTrackingRun( mRun );
+        boolean locatorAvailable = mRunManager.isLocatorAvailable();
 
         if( mRun != null )
         {
@@ -189,8 +203,7 @@ public class RunFragment extends Fragment
             mMapButton.setEnabled( false );
         }
         mDurationTextView.setText( Run.formatDuration( durationSeconds ) );
-        mStartButton.setEnabled( !mIsStarted );
-        mStopButton.setEnabled( mIsStarted && trackingThisRun );
+        mStopButton.setEnabled( locatorAvailable && mIsStarted && trackingThisRun );
     }
 
     private class LocationLoaderOnCallbacks implements LoaderCallbacks< Location >
@@ -249,29 +262,14 @@ public class RunFragment extends Fragment
         }
     }
 
-    private class StartOnClickListener implements OnClickListener
-    {
-        @Override
-        public void onClick( View v )
-        {
-            if( mRun == null )
-            {
-                mRun = mRunManager.startNewRun();
-            }
-            else
-            {
-                mRunManager.startTrackingRun( mRun );
-            }
-            updateUI();
-        }
-    }
-
     private class StopOnClickListener implements OnClickListener
     {
         @Override
         public void onClick( View v )
         {
             mRunManager.stopRun();
+            getActivity().unregisterReceiver( mLocationReceiver );
+            mIsLocationReceiverRegistered = false;
             updateUI();
         }
     }

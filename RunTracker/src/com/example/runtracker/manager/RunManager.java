@@ -190,6 +190,8 @@ public class RunManager
 
     public boolean isLocatorAvailable()
     {
-        return mLocationManager.isProviderEnabled( LocationManager.GPS_PROVIDER );
+        return mLocationManager.isProviderEnabled( LocationManager.GPS_PROVIDER )
+                || ( mLocationManager.getProvider( TEST_PROVIDER ) != null
+                        && mLocationManager.isProviderEnabled( TEST_PROVIDER ) );
     }
 }

@@ -9,12 +9,15 @@ import com.example.runtracker.object.Run;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,21 +29,32 @@ import android.widget.TextView;
 
 public class RunListFragment extends ListFragment implements LoaderCallbacks< Cursor >
 {
-    public static final int REQUEST_NEW_RUN = 0;
+    public static final int REQUEST_RUN = 0;
 
-    private static final String TAG = "RunListFragment";
+    private static final String TAG = "RunTrackerV2.0";
+
+    public static final String ONGOING_RUN_ID = "RunListFragment.OngoingRunId";
+
+    private long mCurrentRunId = 0;
+
+    private MenuItem mAddMenuItem;
 
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
         switch( requestCode )
         {
-            case REQUEST_NEW_RUN:
+            case REQUEST_RUN:
                 getLoaderManager().restartLoader( 0, null, this );
+                mCurrentRunId = data.getLongExtra( RunFragment.ARGS_RUN_ID, 0 );
+                Log.i( TAG, "RunListFragment - Returned to RunListFragment. Setting mCurrentRunId to " + mCurrentRunId
+                        + " based on return intent." );
+                mAddMenuItem.setEnabled( mCurrentRunId == 0 );
                 break;
             default:
                 super.onActivityResult( requestCode, resultCode, data );
         }
+        Log.i( TAG, "RunListFragment - ongoing run: " + mCurrentRunId );
     }
 
     @Override
@@ -49,6 +63,16 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         super.onCreate( savedInstanceState );
         setHasOptionsMenu( true );
         getLoaderManager().initLoader( 0, null, this );
+        mCurrentRunId = PreferenceManager.getDefaultSharedPreferences( getActivity() ).getLong( ONGOING_RUN_ID, 0 );
+        if( mCurrentRunId != 0 )
+        {
+            Log.i( TAG, "RunListFragment - savedInstanceState available! setting ongoing run id to " + mCurrentRunId );
+        }
+        else
+        {
+            Log.i( TAG, "RunListFragment - savedInstanceState missing. No ongoing run " + mCurrentRunId );
+        }
+        updateMenuUI();
     }
 
     @Override
@@ -62,6 +86,19 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
     {
         super.onCreateOptionsMenu( menu, inflater );
         inflater.inflate( R.menu.run_list_options, menu );
+        Log.i( TAG, "RunListFragment - menu inflated!" );
+        mAddMenuItem = menu.findItem( R.id.menu_item_new_run );
+        updateMenuUI();
+    }
+
+    private void updateMenuUI()
+    {
+        Log.i( TAG, "RunListFragment - menu item enabled = " + ( mCurrentRunId == 0 ) );
+        if( mAddMenuItem == null )
+        {
+            return;
+        }
+        mAddMenuItem.setEnabled( mCurrentRunId == 0 );
     }
 
     @Override
@@ -69,7 +106,8 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
     {
         Intent i = new Intent( getActivity(), RunActivity.class );
         i.putExtra( RunActivity.EXTRA_RUN_ID, id );
-        startActivity( i );
+        Log.i( TAG, "RunListFragment - Run selected: " + id );
+        startActivityForResult( i, REQUEST_RUN );
     }
 
     @Override
@@ -92,7 +130,8 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         {
             case R.id.menu_item_new_run:
                 Intent i = new Intent( getActivity(), RunActivity.class );
-                startActivityForResult( i, REQUEST_NEW_RUN );
+                Log.i( TAG, "RunListFragment - New run selected!" );
+                startActivityForResult( i, REQUEST_RUN );
                 return true;
             default:
                 return super.onOptionsItemSelected( item );
@@ -124,6 +163,14 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
             LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
             return inflater.inflate( android.R.layout.simple_list_item_1, parent, false );
         }
+    }
 
+    @Override
+    public void onPause()
+    {
+        PreferenceManager.getDefaultSharedPreferences( getActivity() ).edit().putLong( ONGOING_RUN_ID, mCurrentRunId )
+                .commit();
+        Log.i( TAG, "RunListFragment - saving instance! Ongoing run id = " + mCurrentRunId );
+        super.onPause();
     }
 }

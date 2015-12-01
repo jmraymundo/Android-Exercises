@@ -9,6 +9,7 @@ import com.example.runtracker.manager.RunManager;
 import com.example.runtracker.object.Run;
 import com.example.runtracker.receiver.LocationReceiver;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -32,13 +33,13 @@ public class RunFragment extends Fragment
 {
     public static final int SHOW_MAP = 2;
 
-    private static final String ARGS_RUN_ID = "run_id";
+    public static final String ARGS_RUN_ID = "run_id";
 
     private static final int LOAD_LOCATION = 1;
 
     private static final int LOAD_RUN = 0;
 
-    private static final String TAG = "RunFragment";
+    private static final String TAG = "RunTrackerV2.0";
 
     private TextView mAltitudeTextView;
 
@@ -93,9 +94,11 @@ public class RunFragment extends Fragment
 
     public boolean mIsLocationReceiverRegistered;
 
+    private boolean isStopped = false;
+
     public static RunFragment newInstance( long runId )
     {
-        Log.i( TAG, "Run " + runId + " selected!" );
+        Log.i( TAG, "RunFragment - Run " + runId + " selected!" );
         Bundle args = new Bundle();
         args.putLong( ARGS_RUN_ID, runId );
         RunFragment rf = new RunFragment();
@@ -123,26 +126,32 @@ public class RunFragment extends Fragment
         setRetainInstance( true );
         mRunManager = RunManager.get( getActivity() );
         Bundle args = getArguments();
+        Log.i( TAG, "RunFragment - Running RunFragment!" );
+        boolean newRun = true;
         if( args != null )
         {
-            long runId = args.getLong( ARGS_RUN_ID, -1 );
-            if( runId != -1 )
+            Log.i( TAG, "RunFragment - Argument found!" );
+            long runId = args.getLong( ARGS_RUN_ID, 0 );
+            if( runId != 0 )
             {
+                Log.i( TAG, "RunFragment - Valid runId argument. Setting id to " + runId );
                 LoaderManager lm = getLoaderManager();
                 lm.initLoader( LOAD_RUN, args, new RunLoaderOnCallbacks() );
                 lm.initLoader( LOAD_LOCATION, args, new LocationLoaderOnCallbacks() );
+                newRun = false;
             }
         }
-        else
+        if( newRun )
         {
             mRun = mRunManager.startNewRun();
+            Log.i( TAG, "RunFragment - No valid argument found. Starting new run with id " + mRun.getId() );
         }
     }
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
     {
-        Log.i( TAG, "RunFragment view created!" );
+        Log.i( TAG, "RunFragment - RunFragment view created!" );
         View view = inflater.inflate( R.layout.fragment_run, container, false );
 
         mStartedTextView = ( TextView ) view.findViewById( R.id.run_startedTextView );
@@ -155,8 +164,25 @@ public class RunFragment extends Fragment
         mStopButton.setOnClickListener( new StopOnClickListener() );
         mMapButton = ( Button ) view.findViewById( R.id.run_mapButton );
         mMapButton.setOnClickListener( new MapOnClickListener() );
+
         updateUI();
         return view;
+    }
+
+    private void updateResult()
+    {
+        Intent i = new Intent();
+        if( !isStopped )
+        {
+            i.putExtra( ARGS_RUN_ID, mRun.getId() );
+            Log.i( TAG, "RunFragment - Run " + mRun.getId() + " still ongoing." );
+        }
+        else
+        {
+            i.putExtra( ARGS_RUN_ID, 0 );
+            Log.i( TAG, "RunFragment - Run " + mRun.getId() + " already stopped." );
+        }
+        getActivity().setResult( Activity.RESULT_OK, i );
     }
 
     @Override
@@ -165,17 +191,6 @@ public class RunFragment extends Fragment
         super.onStart();
         getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
         mIsLocationReceiverRegistered = true;
-    }
-
-    @Override
-    public void onStop()
-    {
-        mRunManager.stopRun();
-        if( mIsLocationReceiverRegistered )
-        {
-            getActivity().unregisterReceiver( mLocationReceiver );
-        }
-        super.onStop();
     }
 
     private void updateUI()
@@ -187,6 +202,7 @@ public class RunFragment extends Fragment
         if( mRun != null )
         {
             mStartedTextView.setText( mRun.getStartDate().toString() );
+            updateResult();
         }
 
         int durationSeconds = 0;
@@ -244,19 +260,20 @@ public class RunFragment extends Fragment
         @Override
         public Loader< Run > onCreateLoader( int id, Bundle args )
         {
+            Log.i( TAG, "RunFragment - Run loader created!" );
             return new RunLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
         }
 
         @Override
         public void onLoaderReset( Loader< Run > loader )
         {
-            // TODO Auto-generated method stub
-
+            Log.i( TAG, "RunFragment - Run loader reset!" );
         }
 
         @Override
         public void onLoadFinished( Loader< Run > loader, Run run )
         {
+            Log.i( TAG, "RunFragment - Loader finished loading. Setting run id to " + run.getId() );
             mRun = run;
             updateUI();
         }
@@ -270,8 +287,15 @@ public class RunFragment extends Fragment
             mRunManager.stopRun();
             getActivity().unregisterReceiver( mLocationReceiver );
             mIsLocationReceiverRegistered = false;
+            if( isStopped )
+            {
+                Intent i = new Intent();
+                i.putExtra( ARGS_RUN_ID, 0 );
+                Log.i( TAG, "RunFragment - Pressed stop! Stopping Run " + mRun.getId() + "." );
+                getActivity().setResult( Activity.RESULT_OK, i );
+            }
+            isStopped = true;
             updateUI();
         }
     }
-
 }

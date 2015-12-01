@@ -13,7 +13,7 @@ public class RunActivity extends SingleFragmentActivity
     @Override
     protected Fragment createFragment()
     {
-        long runId = getIntent().getLongExtra( EXTRA_RUN_ID, -1 );
+        long runId = getIntent().getLongExtra( EXTRA_RUN_ID, 0 );
         if( runId != -1 )
         {
             return RunFragment.newInstance( runId );

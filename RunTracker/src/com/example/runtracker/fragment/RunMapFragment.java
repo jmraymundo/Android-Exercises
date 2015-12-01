@@ -43,7 +43,7 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
 
     private static final int LOAD_LOCATIONS = 0;
 
-    private static final String TAG = "RunMapFragment";
+    private static final String TAG = "RunTrackerV2.0";
 
     private GoogleMap mGoogleMap;
 

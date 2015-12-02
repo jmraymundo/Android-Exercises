@@ -7,10 +7,12 @@ import com.example.runtracker.database.RunDatabaseHelper.RunCursor;
 import com.example.runtracker.loader.RunListCursorLoader;
 import com.example.runtracker.object.Run;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
@@ -26,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class RunListFragment extends ListFragment implements LoaderCallbacks< Cursor >
 {
@@ -37,8 +40,6 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
 
     private long mCurrentRunId = 0;
 
-    private MenuItem mAddMenuItem;
-
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
@@ -49,7 +50,6 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
                 mCurrentRunId = data.getLongExtra( RunFragment.ARGS_RUN_ID, 0 );
                 Log.i( TAG, "RunListFragment - Returned to RunListFragment. Setting mCurrentRunId to " + mCurrentRunId
                         + " based on return intent." );
-                mAddMenuItem.setEnabled( mCurrentRunId == 0 );
                 break;
             default:
                 super.onActivityResult( requestCode, resultCode, data );
@@ -72,7 +72,6 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         {
             Log.i( TAG, "RunListFragment - savedInstanceState missing. No ongoing run " + mCurrentRunId );
         }
-        updateMenuUI();
     }
 
     @Override
@@ -86,19 +85,6 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
     {
         super.onCreateOptionsMenu( menu, inflater );
         inflater.inflate( R.menu.run_list_options, menu );
-        Log.i( TAG, "RunListFragment - menu inflated!" );
-        mAddMenuItem = menu.findItem( R.id.menu_item_new_run );
-        updateMenuUI();
-    }
-
-    private void updateMenuUI()
-    {
-        Log.i( TAG, "RunListFragment - menu item enabled = " + ( mCurrentRunId == 0 ) );
-        if( mAddMenuItem == null )
-        {
-            return;
-        }
-        mAddMenuItem.setEnabled( mCurrentRunId == 0 );
     }
 
     @Override
@@ -129,10 +115,20 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         switch( item.getItemId() )
         {
             case R.id.menu_item_new_run:
-                Intent i = new Intent( getActivity(), RunActivity.class );
-                Log.i( TAG, "RunListFragment - New run selected!" );
-                startActivityForResult( i, REQUEST_RUN );
-                return true;
+                if( mCurrentRunId == 0 )
+                {
+                    Intent i = new Intent( getActivity(), RunActivity.class );
+                    Log.i( TAG, "RunListFragment - New run selected!" );
+                    startActivityForResult( i, REQUEST_RUN );
+                    return true;
+                }
+                else
+                {
+                    Toast.makeText( getActivity(),
+                            "Cannot start a new run. Run " + mCurrentRunId + " is still ongoing.", Toast.LENGTH_SHORT )
+                            .show();
+                    return false;
+                }
             default:
                 return super.onOptionsItemSelected( item );
         }
@@ -153,8 +149,16 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         {
             Run run = mRunCursor.getRun();
             TextView startDateView = ( TextView ) view;
-            String cellText = context.getString( R.string.cell_text, run.getStartDate() );
+            String cellText = context.getString( R.string.cell_text, run.getId(), run.getStartDate() );
             startDateView.setText( cellText );
+            if( mCurrentRunId == run.getId() )
+            {
+                startDateView.setBackgroundColor( Color.GREEN );
+            }
+            else
+            {
+                startDateView.setBackgroundColor( Color.WHITE );
+            }
         }
 
         @Override

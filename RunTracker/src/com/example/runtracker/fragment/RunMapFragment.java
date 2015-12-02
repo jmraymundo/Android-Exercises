@@ -11,6 +11,7 @@ import com.example.runtracker.receiver.LocationReceiver;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -194,6 +195,6 @@ public class RunMapFragment extends SupportMapFragment implements LoaderCallback
         display.getSize( point );
         CameraUpdate movement = CameraUpdateFactory.newLatLngBounds( bounds, point.x, point.y, 15 );
 
-        mGoogleMap.moveCamera( movement );
+        mGoogleMap.animateCamera( movement );
     }
 }

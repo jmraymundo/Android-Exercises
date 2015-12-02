@@ -1,8 +1,12 @@
 
 package com.example.runtracker.fragment;
 
+import java.text.DecimalFormat;
+
 import com.example.runtracker.R;
 import com.example.runtracker.activity.RunMapActivity;
+import com.example.runtracker.database.RunDatabaseHelper.LocationCursor;
+import com.example.runtracker.loader.LocationListCursorLoader;
 import com.example.runtracker.loader.LocationLoader;
 import com.example.runtracker.loader.RunLoader;
 import com.example.runtracker.manager.RunManager;
@@ -14,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -31,25 +36,35 @@ import android.widget.Toast;
 
 public class RunFragment extends Fragment
 {
-    public static final int SHOW_MAP = 2;
-
     public static final String ARGS_RUN_ID = "run_id";
+
+    public static final int SHOW_MAP = 2;
 
     private static final int LOAD_LOCATION = 1;
 
     private static final int LOAD_RUN = 0;
 
+    private static final int LOAD_RUN_LOCATIONS = 3;
+
     private static final String TAG = "RunTrackerV2.0";
+
+    public boolean mIsLocationReceiverRegistered;
+
+    public LocationCursor mLocationCursor;
+
+    public float mTotalDistance = 0;
 
     private TextView mAltitudeTextView;
 
-    private TextView mDurationTextView;
+    private TextView mDistanceTextView;
 
-    private boolean mIsStarted;
+    private TextView mDurationTextView;
 
     private Location mLastLocation;
 
     private TextView mLatitudeTextView;
+
+    private LocationListLoaderOnCallbacks mLocationListLoaderOnCallbacks;
 
     private BroadcastReceiver mLocationReceiver = new LocationReceiver()
     {
@@ -63,6 +78,7 @@ public class RunFragment extends Fragment
             mLastLocation = loc;
             if( isVisible() )
             {
+                restartLoader();
                 updateUI();
             }
         }
@@ -92,10 +108,6 @@ public class RunFragment extends Fragment
 
     private Button mStopButton;
 
-    public boolean mIsLocationReceiverRegistered;
-
-    private boolean isStopped = false;
-
     public static RunFragment newInstance( long runId )
     {
         Log.i( TAG, "RunFragment - Run " + runId + " selected!" );
@@ -104,6 +116,14 @@ public class RunFragment extends Fragment
         RunFragment rf = new RunFragment();
         rf.setArguments( args );
         return rf;
+    }
+
+    private void restartLoader()
+    {
+        LoaderManager lm = getLoaderManager();
+        Bundle args = new Bundle();
+        args.putLong( ARGS_RUN_ID, mRun.getId() );
+        lm.restartLoader( LOAD_RUN_LOCATIONS, args, mLocationListLoaderOnCallbacks );
     }
 
     @Override
@@ -128,6 +148,7 @@ public class RunFragment extends Fragment
         Bundle args = getArguments();
         Log.i( TAG, "RunFragment - Running RunFragment!" );
         boolean newRun = true;
+        mLocationListLoaderOnCallbacks = new LocationListLoaderOnCallbacks();
         if( args != null )
         {
             Log.i( TAG, "RunFragment - Argument found!" );
@@ -138,6 +159,7 @@ public class RunFragment extends Fragment
                 LoaderManager lm = getLoaderManager();
                 lm.initLoader( LOAD_RUN, args, new RunLoaderOnCallbacks() );
                 lm.initLoader( LOAD_LOCATION, args, new LocationLoaderOnCallbacks() );
+                lm.initLoader( LOAD_RUN_LOCATIONS, args, mLocationListLoaderOnCallbacks );
                 newRun = false;
             }
         }
@@ -158,6 +180,7 @@ public class RunFragment extends Fragment
         mLatitudeTextView = ( TextView ) view.findViewById( R.id.run_latitudeTextView );
         mLongitudeTextView = ( TextView ) view.findViewById( R.id.run_longitudeTextView );
         mAltitudeTextView = ( TextView ) view.findViewById( R.id.run_altitudeTextView );
+        mDistanceTextView = ( TextView ) view.findViewById( R.id.run_distanceTextView );
         mDurationTextView = ( TextView ) view.findViewById( R.id.run_durationTextView );
 
         mStopButton = ( Button ) view.findViewById( R.id.run_stopButton );
@@ -169,10 +192,56 @@ public class RunFragment extends Fragment
         return view;
     }
 
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        if( isRunOngoing() )
+        {
+            getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
+            mIsLocationReceiverRegistered = true;
+        }
+    }
+
+    public void updateDistance()
+    {
+        if( mLocationCursor == null )
+        {
+            return;
+        }
+        mTotalDistance = 0;
+        mLocationCursor.moveToFirst();
+        while( !mLocationCursor.isAfterLast() )
+        {
+            Location previous = mLocationCursor.getLocation();
+            mLocationCursor.moveToNext();
+            Location current = mLocationCursor.getLocation();
+            if( current == null )
+            {
+                return;
+            }
+            mTotalDistance = mTotalDistance + previous.distanceTo( current );
+        }
+    }
+
+    private boolean isRunOngoing()
+    {
+        boolean isTrackingStarted = mRunManager.isTrackingRun();
+        boolean isTrackingThisRun = mRunManager.isTrackingRun( mRun );
+        boolean isLocatorAvailable = mRunManager.isLocatorAvailable();
+        return isTrackingStarted && isTrackingThisRun && isLocatorAvailable;
+    }
+
+    private String roundUp( float totalDistance )
+    {
+        DecimalFormat format = new DecimalFormat( "#.##" );
+        return format.format( totalDistance );
+    }
+
     private void updateResult()
     {
         Intent i = new Intent();
-        if( !isStopped )
+        if( isRunOngoing() )
         {
             i.putExtra( ARGS_RUN_ID, mRun.getId() );
             Log.i( TAG, "RunFragment - Run " + mRun.getId() + " still ongoing." );
@@ -185,24 +254,17 @@ public class RunFragment extends Fragment
         getActivity().setResult( Activity.RESULT_OK, i );
     }
 
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-        getActivity().registerReceiver( mLocationReceiver, new IntentFilter( RunManager.ACTION_LOCATION ) );
-        mIsLocationReceiverRegistered = true;
-    }
-
     private void updateUI()
     {
-        mIsStarted = mRunManager.isTrackingRun();
-        boolean trackingThisRun = mRunManager.isTrackingRun( mRun );
-        boolean locatorAvailable = mRunManager.isLocatorAvailable();
-
         if( mRun != null )
         {
             mStartedTextView.setText( mRun.getStartDate().toString() );
             updateResult();
+        }
+
+        if( mLocationCursor != null )
+        {
+            updateDistance();
         }
 
         int durationSeconds = 0;
@@ -212,6 +274,7 @@ public class RunFragment extends Fragment
             mLatitudeTextView.setText( Double.toString( mLastLocation.getLatitude() ) );
             mLongitudeTextView.setText( Double.toString( mLastLocation.getLongitude() ) );
             mAltitudeTextView.setText( Double.toString( mLastLocation.getAltitude() ) );
+            mDistanceTextView.setText( roundUp( mTotalDistance ) + "m" );
             mMapButton.setEnabled( true );
         }
         else
@@ -219,7 +282,30 @@ public class RunFragment extends Fragment
             mMapButton.setEnabled( false );
         }
         mDurationTextView.setText( Run.formatDuration( durationSeconds ) );
-        mStopButton.setEnabled( locatorAvailable && mIsStarted && trackingThisRun );
+        mStopButton.setEnabled( isRunOngoing() );
+    }
+
+    private class LocationListLoaderOnCallbacks implements LoaderCallbacks< Cursor >
+    {
+        @Override
+        public Loader< Cursor > onCreateLoader( int id, Bundle args )
+        {
+            return new LocationListCursorLoader( getActivity(), args.getLong( ARGS_RUN_ID ) );
+        }
+
+        @Override
+        public void onLoaderReset( Loader< Cursor > cursor )
+        {
+            mLocationCursor.close();
+            mLocationCursor = null;
+        }
+
+        @Override
+        public void onLoadFinished( Loader< Cursor > loader, Cursor cursor )
+        {
+            mLocationCursor = ( LocationCursor ) cursor;
+            updateUI();
+        }
     }
 
     private class LocationLoaderOnCallbacks implements LoaderCallbacks< Location >
@@ -287,14 +373,6 @@ public class RunFragment extends Fragment
             mRunManager.stopRun();
             getActivity().unregisterReceiver( mLocationReceiver );
             mIsLocationReceiverRegistered = false;
-            if( isStopped )
-            {
-                Intent i = new Intent();
-                i.putExtra( ARGS_RUN_ID, 0 );
-                Log.i( TAG, "RunFragment - Pressed stop! Stopping Run " + mRun.getId() + "." );
-                getActivity().setResult( Activity.RESULT_OK, i );
-            }
-            isStopped = true;
             updateUI();
         }
     }

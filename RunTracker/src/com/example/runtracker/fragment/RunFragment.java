@@ -118,14 +118,6 @@ public class RunFragment extends Fragment
         return rf;
     }
 
-    private void restartLoader()
-    {
-        LoaderManager lm = getLoaderManager();
-        Bundle args = new Bundle();
-        args.putLong( ARGS_RUN_ID, mRun.getId() );
-        lm.restartLoader( LOAD_RUN_LOCATIONS, args, mLocationListLoaderOnCallbacks );
-    }
-
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
@@ -230,6 +222,14 @@ public class RunFragment extends Fragment
         boolean isTrackingThisRun = mRunManager.isTrackingRun( mRun );
         boolean isLocatorAvailable = mRunManager.isLocatorAvailable();
         return isTrackingStarted && isTrackingThisRun && isLocatorAvailable;
+    }
+
+    private void restartLoader()
+    {
+        LoaderManager lm = getLoaderManager();
+        Bundle args = new Bundle();
+        args.putLong( ARGS_RUN_ID, mRun.getId() );
+        lm.restartLoader( LOAD_RUN_LOCATIONS, args, mLocationListLoaderOnCallbacks );
     }
 
     private String roundUp( float totalDistance )

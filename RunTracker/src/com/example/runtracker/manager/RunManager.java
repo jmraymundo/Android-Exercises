@@ -99,6 +99,13 @@ public class RunManager
         }
     }
 
+    public boolean isLocatorAvailable()
+    {
+        return mLocationManager.isProviderEnabled( LocationManager.GPS_PROVIDER )
+                || ( mLocationManager.getProvider( TEST_PROVIDER ) != null
+                        && mLocationManager.isProviderEnabled( TEST_PROVIDER ) );
+    }
+
     public boolean isTrackingRun()
     {
         return getLocationPendingIntent( false ) != null;
@@ -186,12 +193,5 @@ public class RunManager
         Run run = new Run();
         run.setId( mHelper.insertRun( run ) );
         return run;
-    }
-
-    public boolean isLocatorAvailable()
-    {
-        return mLocationManager.isProviderEnabled( LocationManager.GPS_PROVIDER )
-                || ( mLocationManager.getProvider( TEST_PROVIDER ) != null
-                        && mLocationManager.isProviderEnabled( TEST_PROVIDER ) );
     }
 }

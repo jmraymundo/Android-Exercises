@@ -32,11 +32,11 @@ import android.widget.Toast;
 
 public class RunListFragment extends ListFragment implements LoaderCallbacks< Cursor >
 {
+    public static final String ONGOING_RUN_ID = "RunListFragment.OngoingRunId";
+
     public static final int REQUEST_RUN = 0;
 
     private static final String TAG = "RunTrackerV2.0";
-
-    public static final String ONGOING_RUN_ID = "RunListFragment.OngoingRunId";
 
     private long mCurrentRunId = 0;
 
@@ -134,6 +134,15 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
         }
     }
 
+    @Override
+    public void onPause()
+    {
+        PreferenceManager.getDefaultSharedPreferences( getActivity() ).edit().putLong( ONGOING_RUN_ID, mCurrentRunId )
+                .commit();
+        Log.i( TAG, "RunListFragment - saving instance! Ongoing run id = " + mCurrentRunId );
+        super.onPause();
+    }
+
     public class RunCursorAdapter extends CursorAdapter
     {
         private RunCursor mRunCursor;
@@ -167,14 +176,5 @@ public class RunListFragment extends ListFragment implements LoaderCallbacks< Cu
             LayoutInflater inflater = ( LayoutInflater ) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
             return inflater.inflate( android.R.layout.simple_list_item_1, parent, false );
         }
-    }
-
-    @Override
-    public void onPause()
-    {
-        PreferenceManager.getDefaultSharedPreferences( getActivity() ).edit().putLong( ONGOING_RUN_ID, mCurrentRunId )
-                .commit();
-        Log.i( TAG, "RunListFragment - saving instance! Ongoing run id = " + mCurrentRunId );
-        super.onPause();
     }
 }
